@@ -5,7 +5,7 @@
 
 @layer base {
   :root {
-    --background: 200 11% 97%;
+    --background: 210 20% 98%;
     --foreground: 221 30% 10%;
     --card: 0 0% 100%;
     --card-foreground: 221 30% 10%;
@@ -15,7 +15,7 @@
     --primary-foreground: 210 40% 98%;
     --secondary: 198 78% 95%;
     --secondary-foreground: 198 78% 30%;
-    --muted: 210 20% 90%;
+    --muted: 210 20% 94%;
     --muted-foreground: 215 16% 47%;
     --accent: 198 78% 55%;
     --accent-foreground: 210 40% 98%;
@@ -24,7 +24,7 @@
     --border: 214 32% 91%;
     --input: 214 32% 91%;
     --ring: 221 91% 56%;
-    --radius: 0.75rem;
+    --radius: 1rem;
   }
 }
 
@@ -38,9 +38,16 @@
 }
 
 .glass-card {
-  @apply bg-white/60 backdrop-blur-lg border border-white/30 shadow-sm transition-all duration-300;
+  @apply bg-white/70 backdrop-blur-xl border border-white/40 shadow-xl transition-all duration-300;
 }
 
 .glass-card:hover {
-  @apply bg-white/80 shadow-md;
+  @apply bg-white/80 shadow-2xl;
+}
+
+.auth-container {
+  @apply min-h-screen flex items-center justify-center p-4;
+  background-image: url('https://picsum.photos/seed/travel-bg/1920/1080');
+  background-size: cover;
+  background-position: center;
 }
