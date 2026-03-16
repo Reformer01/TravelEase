@@ -47,7 +47,7 @@ export default function BasketPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
         <div className="lg:col-span-2 space-y-4">
           {items.map((item) => (
-            <Card key={item.id} className="overflow-hidden glass-card border-none">
+            <Card key={item.basketId} className="overflow-hidden glass-card border-none">
               <CardContent className="p-0">
                 <div className="flex flex-col sm:flex-row items-stretch">
                   <div className="relative w-full sm:w-48 h-48 sm:h-auto overflow-hidden">
@@ -72,7 +72,7 @@ export default function BasketPage() {
                         variant="ghost"
                         size="icon"
                         className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                        onClick={() => removeFromBasket(item.id)}
+                        onClick={() => removeFromBasket(item.basketId!)}
                       >
                         <Trash2 className="h-5 w-5" />
                       </Button>
