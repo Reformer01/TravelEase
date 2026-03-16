@@ -1,0 +1,164 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    /**
+     * VOYAGEFLOW SECURITY RULES DOCUMENTATION
+     *
+     * Core Philosophy:
+     * This ruleset enforces a strict path-based ownership model for all user-generated data 
+     * while maintaining public availability for browseable travel services (Flights, Hotels, Activities).
+     *
+     * Data Structure:
+     * - Private Data: All personal profiles, booking baskets, and confirmed bookings are 
+     *   nested under the `/users/{userId}` hierarchy.
+     * - Public Data: Travel services are located in top-level collections: `/flights`, 
+     *   `/hotels`, and `/activities`.
+     *
+     * Key Security Decisions:
+     * - Ownership: Authorization is determined by comparing the `{userId}` path wildcard 
+     *   directly against the authenticated user's UID (`request.auth.uid`).
+     * - Service Management: Public service data is read-only for the general public and 
+     *   requires admin privileges (verified via `/roles_admin`) for any modifications.
+     * - Relational Integrity: On creation of user-owned documents, the rules verify that 
+     *   internal ID fields match the path wildcards to ensure consistency.
+     */
+
+    // --- HELPER FUNCTIONS ---
+
+    /**
+     * @description Basic check if the request is from an authenticated user.
+     */
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    /**
+     * @description Checks if the authenticated user's UID matches the provided userId.
+     */
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    /**
+     * @description Verifies ownership and ensures the document exists before update or delete.
+     */
+    function isExistingOwner(userId) {
+      return isOwner(userId) && resource != null;
+    }
+
+    /**
+     * @description Checks if the authenticated user has an entry in the global admin roles collection.
+     */
+    function isAdmin() {
+      return isSignedIn() && exists(/databases/$(database)/documents/roles_admin/$(request.auth.uid));
+    }
+
+    // --- COLLECTION RULES ---
+
+    /**
+     * @description User profile data. Access restricted to the profile owner.
+     * @path /users/{userId}
+     * @allow (get) If auth.uid == userId
+     * @deny (list) If auth.uid != userId
+     * @principle Path-based ownership and relational integrity.
+     */
+    match /users/{userId} {
+      allow get, list: if isOwner(userId);
+      allow create: if isOwner(userId) && request.resource.data.id == userId;
+      allow update: if isExistingOwner(userId) && request.resource.data.id == resource.data.id;
+      allow delete: if isExistingOwner(userId);
+
+      /**
+       * @description User's active booking basket.
+       * @path /users/{userId}/bookingBasket
+       * @allow (create) If auth.uid == userId and data.userId == userId
+       * @deny (update) If attempt to change the userId field
+       * @principle Relational field immutability.
+       */
+      match /bookingBasket {
+        allow get, list: if isOwner(userId);
+        allow create: if isOwner(userId) && request.resource.data.userId == userId;
+        allow update: if isExistingOwner(userId) && request.resource.data.userId == resource.data.userId;
+        allow delete: if isExistingOwner(userId);
+
+        /**
+         * @description Items currently inside the user's booking basket.
+         * @path /users/{userId}/bookingBasket/items/{itemId}
+         * @allow (create) If parent userId matches auth.uid
+         */
+        match /items/{itemId} {
+          allow get, list: if isOwner(userId);
+          allow create: if isOwner(userId);
+          allow update: if isExistingOwner(userId);
+          allow delete: if isExistingOwner(userId);
+        }
+      }
+
+      /**
+       * @description Confirmed booking records for a user.
+       * @path /users/{userId}/bookings/{bookingId}
+       * @allow (list) If auth.uid == userId
+       * @principle Path-based authorization for queries.
+       */
+      match /bookings/{bookingId} {
+        allow get, list: if isOwner(userId);
+        allow create: if isOwner(userId) && request.resource.data.userId == userId;
+        allow update: if isExistingOwner(userId) && request.resource.data.userId == resource.data.userId;
+        allow delete: if isExistingOwner(userId);
+
+        /**
+         * @description Snapshot items for a confirmed booking.
+         * @path /users/{userId}/bookings/{bookingId}/items/{itemId}
+         */
+        match /items/{itemId} {
+          allow get, list: if isOwner(userId);
+          allow create: if isOwner(userId);
+          allow update: if isExistingOwner(userId);
+          allow delete: if isExistingOwner(userId);
+        }
+      }
+    }
+
+    /**
+     * @description Publicly browseable flight information.
+     * @path /flights/{flightId}
+     * @allow (get, list) For all users
+     * @deny (write) For non-admin users
+     * @principle Public read with role-based write access.
+     */
+    match /flights/{flightId} {
+      allow get, list: if true;
+      allow create, update, delete: if isAdmin();
+    }
+
+    /**
+     * @description Publicly browseable hotel information.
+     * @path /hotels/{hotelId}
+     * @allow (get, list) For all users
+     */
+    match /hotels/{hotelId} {
+      allow get, list: if true;
+      allow create, update, delete: if isAdmin();
+    }
+
+    /**
+     * @description Publicly browseable activity information.
+     * @path /activities/{activityId}
+     * @allow (get, list) For all users
+     */
+    match /activities/{activityId} {
+      allow get, list: if true;
+      allow create, update, delete: if isAdmin();
+    }
+
+    /**
+     * @description Role lookup collection for administrative access.
+     * @path /roles_admin/{uid}
+     */
+    match /roles_admin/{uid} {
+      allow read: if isSignedIn();
+      allow write: if false; // Managed by backend/console only
+    }
+  }
+}
