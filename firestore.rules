@@ -3,56 +3,66 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * VOYAGEFLOW SECURITY RULES - PROTOTYPING MODE
-     * 
-     * Core Philosophy:
-     * This ruleset enforces a strict user-ownership model for all personal travel data while 
-     * providing authenticated read access to global travel services (flights, hotels, activities).
-     * 
-     * Data Structure:
-     * - Personal data (profiles, baskets, bookings) is nested under /users/{userId}/...
-     * - Travel services (flights, hotels, activities) are stored in top-level global collections.
-     * 
-     * Key Security Decisions:
-     * - Access to user-specific data is strictly limited to the owner (request.auth.uid == userId).
-     * - All travel services are readable by any authenticated user but protected from non-admin writes.
-     * - Denormalization for Authorization: Sub-items (Basket Items and Booking Items) must include 
-     *   a 'userProfileId' field matching the owner's UID. This enables "Authorization Independence," 
-     *   allowing the rules to verify ownership without performing expensive get() calls to parent documents.
-     * - Relational Integrity: On creation of user-scoped documents, the system validates that internal 
-     *   linkage fields (like userProfileId) match the authenticated user's ID and the document's path.
+     * VoyageFlow Security Rules
+     *
+     * CORE PHILOSOPHY:
+     * This ruleset enforces a strict user-ownership model combined with role-based access for administrative 
+     * functions. Data access is primarily governed by the user's identity as established via Firebase Auth.
+     *
+     * DATA STRUCTURE:
+     * The database is organized into two primary segments:
+     * 1. User-Specific Data: Private data nested under `/users/{userId}/`, including profiles, booking baskets, 
+     *    and confirmed bookings. Access is strictly limited to the owner.
+     * 2. Global Services: Discoverable services (Flights, Hotels, Activities) located in top-level collections. 
+     *    These are readable by all authenticated users but restricted for modification.
+     *
+     * KEY SECURITY DECISIONS:
+     * - Authorization Independence: We use denormalization to ensure security rules are performant and atomic. 
+     *   Nested items (like BookingBasketItems) contain the `userProfileId` to allow for ownership verification 
+     *   without performing expensive `get()` calls to parent documents.
+     * - Path-Based Authorization: We rely on the `{userId}` wildcard in document paths as the primary 
+     *   source of truth for ownership, validating it against `request.auth.uid`.
+     * - Role-Based Administration: Write access for global service catalogs is gated by an administrative 
+     *   lookup in a dedicated `/roles_admin/` collection.
+     *
+     * DENORMALIZATION FOR AUTHORIZATION:
+     * To maintain high performance, the `userProfileId` is required on all documents within a user's tree. 
+     * Rules enforce that this field matches the authenticated user's ID during creation and remains immutable.
      */
 
-    // --- Helper Functions ---
+    // --- HELPER FUNCTIONS ---
 
-    /** @description Checks if the user is authenticated. */
     function isSignedIn() {
       return request.auth != null;
     }
 
-    /** @description Checks if the authenticated user matches the provided ID. */
     function isOwner(userId) {
       return isSignedIn() && request.auth.uid == userId;
     }
 
-    /** @description Checks if the authenticated user is the owner of an existing document. */
+    // Helper for update/delete to ensure the document exists and the user owns it
     function isExistingOwner(userId) {
       return resource != null && isOwner(userId);
     }
 
-    /** @description Validates that the internal ownership field matches the user's ID. */
-    function isValidRelationalOwner(data, userId) {
-      return data.userProfileId == userId;
+    // Checks if the authenticated user has a document in the admin roles collection
+    function isAdmin() {
+      return isSignedIn() && exists(/databases/$(database)/documents/roles_admin/$(request.auth.uid));
     }
 
-    // --- Collection Rules ---
+    // Validates that the owner ID in the data matches the path parameter
+    function dataMatchesOwner(userId) {
+      return request.resource.data.userProfileId == userId;
+    }
+
+    // --- COLLECTION RULES ---
 
     /**
-     * @description Rules for the UserProfile entity. Users manage their own profile info.
+     * @description Rules for user profiles. Users can only manage their own profile.
      * @path /users/{userId}/profile/{profileId}
-     * @allow (create) User 'abc' creates a profile at /users/abc/profile/prof_1 with { id: 'abc' }.
-     * @deny (list) User 'abc' attempts to list all profiles in /users/xyz/profile.
-     * @principle Restricts access to a user's own data tree and enforces self-creation.
+     * @allow (create) auth.uid 'abc' for /users/abc/profile/profile123
+     * @deny (create) auth.uid 'abc' for /users/xyz/profile/profile123
+     * @principle Ownership: Restricts access to a user's own profile data.
      */
     match /users/{userId}/profile/{profileId} {
       allow get, list: if isOwner(userId);
@@ -62,95 +72,105 @@ service cloud.firestore {
     }
 
     /**
-     * @description Globally discoverable flight services.
+     * @description Catalog of flights. Publicly readable by users, managed by admins.
      * @path /flights/{flightId}
-     * @allow (get) Any authenticated user reads flight details.
-     * @deny (create) An authenticated user attempts to create a new flight record.
-     * @principle Public read for authenticated users with owner-only (admin) writes.
+     * @allow (get) Any signed-in user
+     * @deny (update) Any user without an admin role document
+     * @principle Roles: Restricts write access to users with administrative privileges.
      */
     match /flights/{flightId} {
       allow get, list: if isSignedIn();
-      allow create, update, delete: if false; // TODO: Restrict to users with 'admin' role in custom claims or admin collection.
+      allow create, update, delete: if isAdmin();
     }
 
     /**
-     * @description Globally discoverable hotel services.
+     * @description Catalog of hotels. Publicly readable by users, managed by admins.
      * @path /hotels/{hotelId}
-     * @allow (list) Any authenticated user lists available hotels.
-     * @deny (delete) A user attempts to delete a hotel record.
-     * @principle Public read for authenticated users with owner-only (admin) writes.
+     * @allow (list) Any signed-in user
+     * @deny (create) Any user without an admin role document
+     * @principle Roles: Restricts write access to users with administrative privileges.
      */
     match /hotels/{hotelId} {
       allow get, list: if isSignedIn();
-      allow create, update, delete: if false; // TODO: Restrict to users with 'admin' role.
+      allow create, update, delete: if isAdmin();
     }
 
     /**
-     * @description Globally discoverable activity services.
+     * @description Catalog of activities. Publicly readable by users, managed by admins.
      * @path /activities/{activityId}
-     * @allow (get) Any authenticated user reads activity details.
-     * @deny (update) A user attempts to update activity pricing.
-     * @principle Public read for authenticated users with owner-only (admin) writes.
+     * @allow (get) Any signed-in user
+     * @deny (delete) Any user without an admin role document
+     * @principle Roles: Restricts write access to users with administrative privileges.
      */
     match /activities/{activityId} {
       allow get, list: if isSignedIn();
-      allow create, update, delete: if false; // TODO: Restrict to users with 'admin' role.
+      allow create, update, delete: if isAdmin();
     }
 
     /**
-     * @description Stores a user's temporary booking basket.
+     * @description Temporary shopping baskets for users.
      * @path /users/{userId}/bookingBaskets/{basketId}
-     * @allow (create) User 'abc' creates a basket with userProfileId 'abc'.
-     * @deny (get) User 'abc' attempts to read a basket belonging to user 'xyz'.
-     * @principle Enforces path-based ownership and relational integrity.
+     * @allow (create) auth.uid 'user1' with userProfileId 'user1' in data
+     * @deny (update) auth.uid 'user1' attempting to change userProfileId
+     * @principle Ownership: Enforces document ownership and data consistency.
      */
     match /users/{userId}/bookingBaskets/{basketId} {
       allow get, list: if isOwner(userId);
-      allow create: if isOwner(userId) && isValidRelationalOwner(request.resource.data, userId);
-      allow update: if isExistingOwner(userId) && isValidRelationalOwner(request.resource.data, userId);
+      allow create: if isOwner(userId) && dataMatchesOwner(userId);
+      allow update: if isExistingOwner(userId) && dataMatchesOwner(userId) && request.resource.data.userProfileId == resource.data.userProfileId;
       allow delete: if isExistingOwner(userId);
 
       /**
-       * @description Individual items within a user's booking basket.
+       * @description Individual items within a basket. Uses denormalized ID for fast lookup.
        * @path /users/{userId}/bookingBaskets/{basketId}/items/{itemId}
-       * @allow (list) User 'abc' lists items in their own basket.
-       * @deny (create) User 'abc' creates an item with userProfileId 'xyz'.
-       * @principle Authorization independence via denormalized ownership field.
+       * @allow (list) Owner of the parent userId wildcard
+       * @deny (create) Mismatched userProfileId in the request body
+       * @principle Authorization Independence: Validates ownership directly on the document.
        */
       match /items/{itemId} {
         allow get, list: if isOwner(userId);
-        allow create: if isOwner(userId) && isValidRelationalOwner(request.resource.data, userId);
-        allow update: if isExistingOwner(userId) && isValidRelationalOwner(request.resource.data, userId);
+        allow create: if isOwner(userId) && dataMatchesOwner(userId);
+        allow update: if isExistingOwner(userId) && dataMatchesOwner(userId) && request.resource.data.userProfileId == resource.data.userProfileId;
         allow delete: if isExistingOwner(userId);
       }
     }
 
     /**
-     * @description Stores confirmed bookings made by a user.
+     * @description Confirmed travel bookings.
      * @path /users/{userId}/bookings/{bookingId}
-     * @allow (get) User 'abc' retrieves their confirmed booking record.
-     * @deny (update) User 'abc' tries to change the userProfileId on an existing booking.
-     * @principle Enforces strict ownership and immutable relational links.
+     * @allow (get) Owner of the booking
+     * @deny (create) auth.uid 'user1' for path /users/user2/...
+     * @principle Ownership: Secures private booking history.
      */
     match /users/{userId}/bookings/{bookingId} {
       allow get, list: if isOwner(userId);
-      allow create: if isOwner(userId) && isValidRelationalOwner(request.resource.data, userId);
-      allow update: if isExistingOwner(userId) && isValidRelationalOwner(request.resource.data, userId) && request.resource.data.userProfileId == resource.data.userProfileId;
+      allow create: if isOwner(userId) && dataMatchesOwner(userId);
+      allow update: if isExistingOwner(userId) && dataMatchesOwner(userId) && request.resource.data.userProfileId == resource.data.userProfileId;
       allow delete: if isExistingOwner(userId);
 
       /**
-       * @description Services within a confirmed booking.
+       * @description Individual services within a confirmed booking.
        * @path /users/{userId}/bookings/{bookingId}/items/{bookedItemId}
-       * @allow (get) User 'abc' views a specific flight item within their booking.
-       * @deny (list) User 'xyz' attempts to list items in 'abc's booking.
-       * @principle Authorization independence via denormalized ownership field.
+       * @allow (get) Owner of the booking tree
+       * @deny (update) Attempting to change the linked userProfileId
+       * @principle Authorization Independence: Uses denormalized data to avoid recursive path lookups.
        */
       match /items/{bookedItemId} {
         allow get, list: if isOwner(userId);
-        allow create: if isOwner(userId) && isValidRelationalOwner(request.resource.data, userId);
-        allow update: if isExistingOwner(userId) && isValidRelationalOwner(request.resource.data, userId);
+        allow create: if isOwner(userId) && dataMatchesOwner(userId);
+        allow update: if isExistingOwner(userId) && dataMatchesOwner(userId) && request.resource.data.userProfileId == resource.data.userProfileId;
         allow delete: if isExistingOwner(userId);
       }
+    }
+
+    /**
+     * @description Internal administrative role definitions.
+     * @path /roles_admin/{adminId}
+     * @principle Default Deny: Administrative roles are not client-managed.
+     */
+    match /roles_admin/{adminId} {
+      allow read: if isSignedIn();
+      allow write: if false; // Roles must be assigned via Admin SDK or Console
     }
   }
 }
