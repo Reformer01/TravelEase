@@ -11,6 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { signOut } from 'firebase/auth';
+import { Navbar } from '@/components/layout/navbar';
 
 export default function ProfilePage() {
   const { user, isUserLoading } = useUser();
@@ -43,46 +44,7 @@ export default function ProfilePage() {
 
   return (
     <div className="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 min-h-screen font-display">
-      {/* Header / TopNavBar */}
-      <header className="sticky top-0 z-50 w-full border-b border-slate-200 dark:border-slate-800 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex h-16 items-center justify-between gap-8">
-            <div className="flex items-center gap-8">
-              <Link href="/" className="flex items-center gap-2 text-primary">
-                <span className="material-symbols-outlined text-3xl font-bold">flight_takeoff</span>
-                <h2 className="text-slate-900 dark:text-slate-100 text-xl font-bold tracking-tight uppercase">TravelEase</h2>
-              </Link>
-              <nav className="hidden md:flex items-center gap-6">
-                <Link className="text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-primary text-sm font-medium transition-colors" href="/search?type=flight">Explore</Link>
-                <Link className="text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-primary text-sm font-medium transition-colors" href="/search">Bookings</Link>
-                <Link className="text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-primary text-sm font-medium transition-colors" href="#">Support</Link>
-              </nav>
-            </div>
-            <div className="flex flex-1 justify-end items-center gap-4">
-              <div className="hidden sm:flex relative w-full max-w-xs">
-                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xl">search</span>
-                <input 
-                  className="w-full bg-slate-100 dark:bg-slate-800 border-none rounded-xl py-2 pl-10 pr-4 text-sm focus:ring-2 focus:ring-primary/50 placeholder:text-slate-400" 
-                  placeholder="Search destinations..." 
-                  type="text"
-                />
-              </div>
-              <div className="flex items-center gap-3">
-                <button className="material-symbols-outlined p-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors">notifications</button>
-                <Link href="/profile" className="h-10 w-10 rounded-full bg-primary/20 border-2 border-primary overflow-hidden transition-transform hover:scale-105">
-                  <Image 
-                    width={40}
-                    height={40}
-                    alt="User Profile" 
-                    className="h-full w-full object-cover" 
-                    src={user.photoURL || "https://picsum.photos/seed/user/100/100"}
-                  />
-                </Link>
-              </div>
-            </div>
-          </div>
-        </div>
-      </header>
+      <Navbar />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex flex-col lg:flex-row gap-8">
@@ -105,18 +67,18 @@ export default function ProfilePage() {
                   </div>
                 </div>
                 <h3 className="mt-4 text-lg font-bold truncate max-w-full">{user.displayName || user.email?.split('@')[0]}</h3>
-                <p className="text-sm text-primary font-medium">TravelEase Explorer</p>
+                <p className="text-sm text-primary font-bold uppercase tracking-wider text-[10px]">Gold Member</p>
               </div>
               <nav className="space-y-1">
-                <button className="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-primary text-white font-medium">
+                <button className="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-primary text-white font-black shadow-lg shadow-primary/20">
                   <span className="material-symbols-outlined">person</span>
                   <span>Profile</span>
                 </button>
-                <Link href="/search" className="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                <Link href="/profile/bookings" className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
                   <span className="material-symbols-outlined">luggage</span>
                   <span>My Bookings</span>
                 </Link>
-                <Link href="/basket" className="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                <Link href="/basket" className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
                   <span className="material-symbols-outlined">shopping_basket</span>
                   <span>My Basket</span>
                 </Link>
@@ -127,7 +89,7 @@ export default function ProfilePage() {
                 <div className="pt-4 mt-4 border-t border-slate-100 dark:border-slate-800">
                   <button 
                     onClick={handleLogout}
-                    className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 transition-colors"
+                    className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 transition-colors font-bold"
                   >
                     <span className="material-symbols-outlined">logout</span>
                     <span>Logout</span>
@@ -143,59 +105,59 @@ export default function ProfilePage() {
             <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="bg-white dark:bg-slate-900 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800">
                 <div className="flex items-center justify-between mb-2">
-                  <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Total Trips</p>
+                  <p className="text-sm font-bold uppercase tracking-widest text-slate-400">Total Trips</p>
                   <span className="material-symbols-outlined text-primary">flight_takeoff</span>
                 </div>
-                <p className="text-3xl font-bold">1</p>
+                <p className="text-3xl font-black tracking-tight">24</p>
               </div>
               <div className="bg-white dark:bg-slate-900 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800">
                 <div className="flex items-center justify-between mb-2">
-                  <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Loyalty Points</p>
+                  <p className="text-sm font-bold uppercase tracking-widest text-slate-400">Loyalty Points</p>
                   <span className="material-symbols-outlined text-primary">stars</span>
                 </div>
-                <p className="text-3xl font-bold">450</p>
+                <p className="text-3xl font-black tracking-tight">4,250</p>
               </div>
               <div className="bg-white dark:bg-slate-900 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800">
                 <div className="flex items-center justify-between mb-2">
-                  <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Visited</p>
+                  <p className="text-sm font-bold uppercase tracking-widest text-slate-400">Visited</p>
                   <span className="material-symbols-outlined text-primary">public</span>
                 </div>
-                <p className="text-3xl font-bold">1 <span className="text-sm font-normal text-slate-400">Country</span></p>
+                <p className="text-3xl font-black tracking-tight">12 <span className="text-sm font-bold text-slate-400 uppercase tracking-widest">Countries</span></p>
               </div>
             </section>
 
             {/* Personal Information */}
             <section className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden">
               <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
-                <h2 className="text-xl font-bold tracking-tight">Personal Information</h2>
-                <button className="text-primary text-sm font-semibold hover:underline">Edit All</button>
+                <h2 className="text-xl font-black tracking-tight">Personal Information</h2>
+                <button className="text-primary text-sm font-bold hover:underline">Edit All</button>
               </div>
               <div className="p-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
-                    <Label className="text-sm font-medium text-slate-600 dark:text-slate-400">Display Name</Label>
-                    <Input className="w-full rounded-lg" readOnly value={user.displayName || "Alex Johnson"} />
+                    <Label className="text-sm font-bold text-slate-600 dark:text-slate-400 uppercase tracking-widest">Full Name</Label>
+                    <Input className="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 h-12 font-medium" readOnly value={user.displayName || "Alex Johnson"} />
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-sm font-medium text-slate-600 dark:text-slate-400">Email Address</Label>
-                    <Input className="w-full rounded-lg" readOnly value={user.email || ""} />
+                    <Label className="text-sm font-bold text-slate-600 dark:text-slate-400 uppercase tracking-widest">Email Address</Label>
+                    <Input className="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 h-12 font-medium" readOnly value={user.email || ""} />
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-sm font-medium text-slate-600 dark:text-slate-400">Phone Number</Label>
-                    <Input className="w-full rounded-lg" placeholder="+1 (555) 000-0000" type="tel" />
+                    <Label className="text-sm font-bold text-slate-600 dark:text-slate-400 uppercase tracking-widest">Phone Number</Label>
+                    <Input className="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 h-12 font-medium" placeholder="+1 (555) 000-0000" type="tel" />
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-sm font-medium text-slate-600 dark:text-slate-400">Date of Birth</Label>
-                    <Input className="w-full rounded-lg" type="date" />
+                    <Label className="text-sm font-bold text-slate-600 dark:text-slate-400 uppercase tracking-widest">Date of Birth</Label>
+                    <Input className="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 h-12 font-medium" type="date" />
                   </div>
                   <div className="md:col-span-2 space-y-2">
-                    <Label className="text-sm font-medium text-slate-600 dark:text-slate-400">Home Address</Label>
-                    <Textarea className="w-full rounded-lg" rows={2} placeholder="123 Wanderlust Lane, Travel City, TC 54321" />
+                    <Label className="text-sm font-bold text-slate-600 dark:text-slate-400 uppercase tracking-widest">Home Address</Label>
+                    <Textarea className="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 font-medium" rows={2} placeholder="123 Wanderlust Lane, Travel City, TC 54321" />
                   </div>
                 </div>
               </div>
               <div className="p-6 bg-slate-50 dark:bg-slate-800/50 flex justify-end">
-                <Button className="bg-primary hover:bg-primary/90 text-white font-bold py-2.5 px-8 rounded-xl transition-all shadow-md shadow-primary/20 h-auto">
+                <Button className="bg-primary hover:bg-primary/90 text-white font-black py-2.5 px-10 rounded-xl transition-all shadow-lg shadow-primary/20 h-12">
                   Save Changes
                 </Button>
               </div>
@@ -204,7 +166,7 @@ export default function ProfilePage() {
             {/* Security Section */}
             <section className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden">
               <div className="p-6 border-b border-slate-100 dark:border-slate-800">
-                <h2 className="text-xl font-bold tracking-tight">Security & Login</h2>
+                <h2 className="text-xl font-black tracking-tight">Security & Login</h2>
               </div>
               <div className="p-6 space-y-6">
                 <div className="flex items-center justify-between">
@@ -217,7 +179,7 @@ export default function ProfilePage() {
                       <p className="text-sm text-slate-500 dark:text-slate-400">Secure your account with a unique password</p>
                     </div>
                   </div>
-                  <Button variant="secondary" className="font-bold px-6">Update</Button>
+                  <Button variant="secondary" className="font-bold px-6 h-10 rounded-lg">Update</Button>
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="flex items-start gap-4">
@@ -231,7 +193,7 @@ export default function ProfilePage() {
                     </div>
                     <div>
                       <p className="font-bold">Google Account</p>
-                      <p className="text-sm text-green-500 font-medium">Account synchronization active</p>
+                      <p className="text-sm text-green-500 font-bold uppercase tracking-wider text-[10px]">Connected</p>
                     </div>
                   </div>
                   <button className="text-slate-400 hover:text-red-500 transition-colors material-symbols-outlined">link_off</button>
@@ -242,42 +204,17 @@ export default function ProfilePage() {
         </div>
       </main>
 
-      {/* Footer */}
-      <footer className="bg-slate-900 text-slate-400 py-12 px-6 lg:px-20 border-t border-slate-800">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
-          <div className="flex flex-col gap-4">
-            <div className="flex items-center gap-2 text-primary mb-2">
-              <span className="material-symbols-outlined text-2xl font-bold">flight_takeoff</span>
-              <span className="text-white text-lg font-black uppercase">TravelEase</span>
-            </div>
-            <p className="text-sm">Making travel simple, affordable, and accessible for everyone, everywhere.</p>
+      <footer className="bg-slate-900 text-slate-400 py-16 px-6 lg:px-20 border-t border-slate-800 mt-20">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
+          <div className="flex items-center gap-2 text-primary">
+            <span className="material-symbols-outlined text-3xl font-bold">flight_takeoff</span>
+            <span className="text-white text-xl font-black tracking-tighter uppercase">Travel<span className="text-primary">Ease</span></span>
           </div>
-          <div className="flex flex-col gap-4">
-            <h4 className="text-white font-bold uppercase text-xs tracking-widest">Company</h4>
-            <Link className="text-sm hover:text-primary transition-colors" href="#">About Us</Link>
-            <Link className="text-sm hover:text-primary transition-colors" href="#">Careers</Link>
-            <Link className="text-sm hover:text-primary transition-colors" href="#">Press</Link>
+          <p className="text-sm font-medium">© 2024 TravelEase Inc. All rights reserved.</p>
+          <div className="flex gap-6">
+            <Link className="text-slate-400 hover:text-primary transition-all hover:scale-110" href="#"><span className="material-symbols-outlined">share</span></Link>
+            <Link className="text-slate-400 hover:text-primary transition-all hover:scale-110" href="#"><span className="material-symbols-outlined">mail</span></Link>
           </div>
-          <div className="flex flex-col gap-4">
-            <h4 className="text-white font-bold uppercase text-xs tracking-widest">Support</h4>
-            <Link className="text-sm hover:text-primary transition-colors" href="#">Help Center</Link>
-            <Link className="text-sm hover:text-primary transition-colors" href="#">Terms of Service</Link>
-            <Link className="text-sm hover:text-primary transition-colors" href="#">Privacy Policy</Link>
-          </div>
-          <div className="flex flex-col gap-4">
-            <h4 className="text-white font-bold uppercase text-xs tracking-widest">Connect</h4>
-            <div className="flex gap-4">
-              <Link className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center hover:bg-primary hover:text-white transition-all" href="#">
-                <span className="material-symbols-outlined">share</span>
-              </Link>
-              <Link className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center hover:bg-primary hover:text-white transition-all" href="#">
-                <span className="material-symbols-outlined">mail</span>
-              </Link>
-            </div>
-          </div>
-        </div>
-        <div className="pt-8 border-t border-slate-800 text-center text-xs">
-          © 2024 TravelEase. All rights reserved.
         </div>
       </footer>
     </div>

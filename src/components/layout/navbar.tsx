@@ -13,7 +13,7 @@ export function Navbar() {
   const { user } = useUser();
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/80 backdrop-blur-md">
+    <header className="sticky top-0 z-50 w-full border-b border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-background-dark/80 backdrop-blur-md">
       <div className="container mx-auto px-6 h-16 flex items-center justify-between lg:px-20">
         <Link href="/" className="flex items-center gap-2 group">
           <div className="text-primary flex items-center justify-center">
@@ -26,8 +26,8 @@ export function Navbar() {
 
         <nav className="hidden md:flex items-center gap-8">
           <Link href="/search?type=flight" className="text-sm font-semibold hover:text-primary transition-colors">Discover</Link>
-          <Link href="/search?type=hotel" className="text-sm font-semibold hover:text-primary transition-colors">Trips</Link>
-          <Link href="/search?type=activity" className="text-sm font-semibold hover:text-primary transition-colors">Support</Link>
+          <Link href={user ? "/profile/bookings" : "/auth/login"} className="text-sm font-semibold hover:text-primary transition-colors">Trips</Link>
+          <Link href="#" className="text-sm font-semibold hover:text-primary transition-colors">Support</Link>
         </nav>
 
         <div className="flex items-center gap-3">
