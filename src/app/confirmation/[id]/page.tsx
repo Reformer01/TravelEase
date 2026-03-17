@@ -4,14 +4,21 @@
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
+import { useState, useEffect } from 'react';
 
 export default function ConfirmationPage() {
   const params = useParams();
   const bookingId = params.id as string;
-  
-  // Use the mountain activity placeholder for the Swiss Alps summary
-  const tripImage = PlaceHolderImages.find(img => img.id === 'mountain-activity');
+  const [purchase, setPurchase] = useState<any>(null);
+
+  useEffect(() => {
+    const saved = localStorage.getItem('travelease_last_purchase');
+    if (saved) {
+      setPurchase(JSON.parse(saved));
+    }
+  }, []);
+
+  const firstItem = purchase?.items?.[0];
 
   return (
     <div className="relative flex min-h-screen flex-col overflow-x-hidden">
@@ -54,17 +61,16 @@ export default function ConfirmationPage() {
                 <div className="flex items-center gap-4">
                   <div className="w-20 h-20 rounded-lg overflow-hidden shrink-0 relative">
                     <Image 
-                      alt="Swiss Alps Expedition" 
+                      alt={firstItem?.title || "Trip"} 
                       fill 
                       className="object-cover" 
-                      src={tripImage?.imageUrl || "https://picsum.photos/seed/swiss/200/200"}
-                      data-ai-hint="mountain landscape"
+                      src={firstItem?.image || "https://picsum.photos/seed/travel/200/200"}
                     />
                   </div>
                   <div className="flex flex-col">
-                    <span className="text-sm font-semibold text-primary uppercase">Adventure Package</span>
-                    <span className="text-lg font-bold text-slate-900 dark:text-slate-100">Swiss Alps Expedition</span>
-                    <span className="text-sm text-slate-500 dark:text-slate-400">June 12 - June 19, 2024</span>
+                    <span className="text-sm font-semibold text-primary uppercase">{firstItem?.type || 'Trip'} Package</span>
+                    <span className="text-lg font-bold text-slate-900 dark:text-slate-100">{firstItem?.title || 'Your Journey'}</span>
+                    <span className="text-sm text-slate-500 dark:text-slate-400">{purchase?.date || 'Upcoming'}</span>
                   </div>
                 </div>
               </div>
@@ -75,12 +81,12 @@ export default function ConfirmationPage() {
                   <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Travelers</span>
                   <div className="flex items-center gap-2">
                     <span className="material-symbols-outlined text-sm text-slate-500">group</span>
-                    <span className="font-medium text-slate-900 dark:text-slate-100">2 Adults, 1 Child</span>
+                    <span className="font-medium text-slate-900 dark:text-slate-100">1 Adult</span>
                   </div>
                 </div>
                 <div className="flex flex-col gap-1 text-right">
                   <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Total Paid</span>
-                  <span className="text-xl font-bold text-primary">$2,450.00</span>
+                  <span className="text-xl font-bold text-primary">${purchase?.total?.toFixed(2) || '0.00'}</span>
                 </div>
               </div>
 
@@ -89,16 +95,16 @@ export default function ConfirmationPage() {
                 <div className="flex items-center gap-3">
                   <span className="material-symbols-outlined text-slate-400">location_on</span>
                   <div>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 leading-tight font-semibold">Pick-up Location</p>
-                    <p className="text-sm font-medium text-slate-900 dark:text-slate-100">Zurich Airport Terminal 1</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 leading-tight font-semibold">Location</p>
+                    <p className="text-sm font-medium text-slate-900 dark:text-slate-100">{firstItem?.location || 'Various'}</p>
                   </div>
                 </div>
                 <div className="h-10 w-[1px] bg-slate-200 dark:bg-slate-700"></div>
                 <div className="flex items-center gap-3">
                   <span className="material-symbols-outlined text-slate-400">calendar_month</span>
                   <div>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 leading-tight font-semibold">Confirmation Date</p>
-                    <p className="text-sm font-medium text-slate-900 dark:text-slate-100">May 15, 2024</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 leading-tight font-semibold">Confirmed On</p>
+                    <p className="text-sm font-medium text-slate-900 dark:text-slate-100">{purchase?.date}</p>
                   </div>
                 </div>
               </div>
@@ -106,7 +112,7 @@ export default function ConfirmationPage() {
 
             {/* Action Buttons */}
             <div className="flex flex-col sm:flex-row gap-4 w-full">
-              <Link href="/search" className="flex-1">
+              <Link href="/profile/bookings" className="flex-1">
                 <button className="w-full flex items-center justify-center gap-2 rounded-xl h-12 bg-primary text-white font-bold text-sm hover:opacity-90 transition-opacity">
                   <span className="material-symbols-outlined">visibility</span>
                   View My Bookings
@@ -121,8 +127,7 @@ export default function ConfirmationPage() {
             {/* Support Message */}
             <div className="mt-12 text-center">
               <p className="text-slate-500 dark:text-slate-400 text-sm">
-                A confirmation email has been sent to <span className="font-semibold text-slate-700 dark:text-slate-200">alex.j@example.com</span>. 
-                Need help? <a className="text-primary hover:underline font-medium" href="#">Contact Support</a>
+                Need help? <Link className="text-primary hover:underline font-medium" href="/support">Contact Support</Link>
               </p>
             </div>
           </div>

@@ -5,7 +5,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 
 export type TravelService = {
   id: string;
-  basketId?: string; // Unique ID for the specific instance in the basket
+  basketId?: string;
   type: 'flight' | 'hotel' | 'activity';
   title: string;
   provider: string;
@@ -28,10 +28,29 @@ const BasketContext = createContext<BasketContextType | undefined>(undefined);
 
 export function BasketProvider({ children }: { children: React.ReactNode }) {
   const [items, setItems] = useState<TravelService[]>([]);
+  const [isInitialized, setIsInitialized] = useState(false);
+
+  // Load basket from localStorage on mount
+  useEffect(() => {
+    const savedBasket = localStorage.getItem('travelease_basket');
+    if (savedBasket) {
+      try {
+        setItems(JSON.parse(savedBasket));
+      } catch (e) {
+        console.error("Failed to parse basket", e);
+      }
+    }
+    setIsInitialized(true);
+  }, []);
+
+  // Save basket to localStorage on change
+  useEffect(() => {
+    if (isInitialized) {
+      localStorage.setItem('travelease_basket', JSON.stringify(items));
+    }
+  }, [items, isInitialized]);
 
   const addToBasket = (item: TravelService) => {
-    // Create a unique basketId so that duplicate items (same service id) 
-    // don't cause key collisions and can be removed individually.
     const uniqueItem = {
       ...item,
       basketId: `${item.id}-${Math.random().toString(36).substr(2, 9)}`
@@ -45,6 +64,7 @@ export function BasketProvider({ children }: { children: React.ReactNode }) {
 
   const clearBasket = () => {
     setItems([]);
+    localStorage.removeItem('travelease_basket');
   };
 
   const totalPrice = items.reduce((total, item) => total + item.price, 0);

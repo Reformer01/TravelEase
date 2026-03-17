@@ -5,16 +5,30 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useBasket } from '@/context/basket-context';
 import { useUser } from '@/firebase';
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 export default function BasketPage() {
   const { items, removeFromBasket, totalPrice } = useBasket();
   const { user } = useUser();
+  const router = useRouter();
+  const [isVerifying, setIsVerifying] = useState(false);
 
   const flights = items.filter(item => item.type === 'flight');
   const hotels = items.filter(item => item.type === 'hotel');
+  const activities = items.filter(item => item.type === 'activity');
 
   const taxesAndFees = Math.floor(totalPrice * 0.08);
   const grandTotal = totalPrice + taxesAndFees;
+
+  const handleVerify = () => {
+    setIsVerifying(true);
+    // Simulate real-time availability check from PRD
+    setTimeout(() => {
+      setIsVerifying(false);
+      router.push('/checkout');
+    }, 2000);
+  };
 
   return (
     <div className="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 min-h-screen">
@@ -54,7 +68,7 @@ export default function BasketPage() {
             <span className="text-slate-900 dark:text-slate-200 font-medium">Basket</span>
           </nav>
           <h1 className="text-4xl font-black tracking-tight">Your Basket</h1>
-          <p className="text-slate-600 dark:text-slate-400">Review your flight and hotel selections before checkout.</p>
+          <p className="text-slate-600 dark:text-slate-400">Review your selections before checkout.</p>
         </div>
 
         {items.length === 0 ? (
@@ -146,7 +160,7 @@ export default function BasketPage() {
                           <div className="flex-1 space-y-2">
                             <div className="flex items-center gap-1 text-primary">
                               {[...Array(5)].map((_, i) => (
-                                <span key={i} className={`material-symbols-outlined text-sm ${i < Math.floor(hotel.rating) ? 'fill-1' : ''}`}>star</span>
+                                <span key={i} className={`material-symbols-outlined text-sm ${i < Math.floor(hotel.rating) ? 'FILL-1' : ''}`}>star</span>
                               ))}
                             </div>
                             <h3 className="text-lg font-bold">{hotel.title}</h3>
@@ -162,6 +176,47 @@ export default function BasketPage() {
                             </div>
                             <button 
                               onClick={() => removeFromBasket(hotel.basketId!)}
+                              className="text-sm font-semibold text-slate-500 hover:text-red-500 flex items-center gap-1"
+                            >
+                              <span className="material-symbols-outlined text-lg">delete</span>
+                              Remove
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </section>
+              )}
+
+              {/* Activities Section */}
+              {activities.length > 0 && (
+                <section>
+                  <div className="flex items-center gap-2 mb-4">
+                    <span className="material-symbols-outlined text-primary">local_activity</span>
+                    <h2 className="text-xl font-bold">Activities</h2>
+                  </div>
+                  {activities.map((activity) => (
+                    <div key={activity.basketId} className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm mb-4">
+                      <div className="flex flex-col md:flex-row">
+                        <div className="w-full md:w-48 h-48 md:h-auto bg-slate-200 shrink-0 relative">
+                          <Image fill alt="Activity" className="object-cover" src={activity.image} />
+                        </div>
+                        <div className="p-6 flex-1 flex flex-col md:flex-row justify-between gap-6">
+                          <div className="flex-1 space-y-2">
+                            <h3 className="text-lg font-bold">{activity.title}</h3>
+                            <p className="text-sm text-slate-500 flex items-center gap-1">
+                              <span className="material-symbols-outlined text-sm">location_on</span>
+                              {activity.location || 'Local Tour'}
+                            </p>
+                          </div>
+                          <div className="flex flex-col items-end justify-between border-l border-slate-100 dark:border-slate-800 pl-6">
+                            <div className="text-right">
+                              <p className="text-xs text-slate-500 uppercase font-bold tracking-wider">Subtotal</p>
+                              <p className="text-2xl font-black text-primary">${activity.price.toFixed(2)}</p>
+                            </div>
+                            <button 
+                              onClick={() => removeFromBasket(activity.basketId!)}
                               className="text-sm font-semibold text-slate-500 hover:text-red-500 flex items-center gap-1"
                             >
                               <span className="material-symbols-outlined text-lg">delete</span>
@@ -199,12 +254,23 @@ export default function BasketPage() {
                   </div>
                 </div>
                 <div className="space-y-3">
-                  <Link href="/checkout">
-                    <button className="w-full bg-primary hover:bg-primary/90 text-white font-bold py-4 rounded-xl shadow-lg shadow-primary/20 transition-all flex items-center justify-center gap-2">
-                      <span className="material-symbols-outlined">verified_user</span>
-                      Verify Availability
-                    </button>
-                  </Link>
+                  <button 
+                    onClick={handleVerify}
+                    disabled={isVerifying}
+                    className="w-full bg-primary hover:bg-primary/90 text-white font-bold py-4 rounded-xl shadow-lg shadow-primary/20 transition-all flex items-center justify-center gap-2 disabled:opacity-70"
+                  >
+                    {isVerifying ? (
+                      <>
+                        <span className="material-symbols-outlined animate-spin">refresh</span>
+                        Verifying...
+                      </>
+                    ) : (
+                      <>
+                        <span className="material-symbols-outlined">verified_user</span>
+                        Verify Availability
+                      </>
+                    )}
+                  </button>
                   <button className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-900 dark:text-white font-bold py-4 rounded-xl transition-all flex items-center justify-center gap-2">
                     <span className="material-symbols-outlined">bookmark</span>
                     Save for Later

@@ -25,6 +25,13 @@ export default function CheckoutPage() {
     e.preventDefault();
     setLoading(true);
 
+    // Save the "last purchase" to localStorage for the confirmation page
+    localStorage.setItem('travelease_last_purchase', JSON.stringify({
+      items,
+      total: grandTotal,
+      date: new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
+    }));
+
     // Simulate payment processing
     setTimeout(() => {
       setLoading(false);
