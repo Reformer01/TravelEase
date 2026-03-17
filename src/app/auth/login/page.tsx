@@ -4,7 +4,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { useAuth } from '@/firebase';
+import { useAuth, useUser } from '@/firebase';
 import { initiateEmailSignIn, initiateEmailSignUp } from '@/firebase/non-blocking-login';
 import { GoogleAuthProvider, signInWithPopup, FacebookAuthProvider } from 'firebase/auth';
 import Image from 'next/image';
@@ -17,16 +17,24 @@ export default function AuthPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const auth = useAuth();
+  const { user } = useUser();
   const [view, setView] = useState<'login' | 'register'>('login');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+
+  // Automatically redirect when the user state becomes available
+  useEffect(() => {
+    if (user) {
+      router.push('/');
+    }
+  }, [user, router]);
 
   useEffect(() => {
     const mode = searchParams.get('mode');
     if (mode === 'register') setView('register');
   }, [searchParams]);
 
-  const handleEmailAuth = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleEmailAuth = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
     const formData = new FormData(e.currentTarget);
@@ -39,10 +47,9 @@ export default function AuthPage() {
       } else {
         initiateEmailSignUp(auth, email, password);
       }
-      // Delay for UX transition
-      setTimeout(() => router.push('/'), 1500);
+      // Note: Redirection happens via the useEffect monitoring the 'user' state
     } catch (error) {
-      console.error("Auth error:", error);
+      console.error("Auth initialization error:", error);
       setLoading(false);
     }
   };
@@ -53,7 +60,7 @@ export default function AuthPage() {
         ? new GoogleAuthProvider() 
         : new FacebookAuthProvider();
       await signInWithPopup(auth, provider);
-      router.push('/');
+      // Redirection happens via the useEffect monitoring the 'user' state
     } catch (error) {
       console.error(`${providerName} login failed`, error);
     }
