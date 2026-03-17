@@ -1,8 +1,9 @@
+// Replace the following object with your actual Firebase configuration from the Firebase Console
 export const firebaseConfig = {
-  "projectId": "studio-6497293217-820ff",
-  "appId": "1:522084430721:web:d684179f858e0951d5ee80",
-  "apiKey": "AIzaSyDtGAQY4SfM-B5hLDZoNIyXku6PS44pM3U",
-  "authDomain": "studio-6497293217-820ff.firebaseapp.com",
-  "measurementId": "",
-  "messagingSenderId": "522084430721"
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_AUTH_DOMAIN",
+  projectId: "YOUR_PROJECT_ID",
+  storageBucket: "YOUR_STORAGE_BUCKET",
+  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+  appId: "YOUR_APP_ID"
 };
