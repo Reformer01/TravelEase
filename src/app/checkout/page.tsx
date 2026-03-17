@@ -10,6 +10,8 @@ import { Label } from '@/components/ui/label';
 import { useBasket } from '@/context/basket-context';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
+import Image from 'next/image';
+import { Separator } from '@/components/ui/separator';
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -133,7 +135,7 @@ export default function CheckoutPage() {
           <h2 className="text-xl font-bold mb-6">Booking Summary</h2>
           <div className="space-y-6">
             {items.map((item) => (
-              <div key={item.id} className="flex gap-4">
+              <div key={item.basketId} className="flex gap-4">
                 <div className="relative w-16 h-16 rounded-lg overflow-hidden shrink-0">
                   <Image src={item.image} alt={item.title} fill className="object-cover" />
                 </div>
