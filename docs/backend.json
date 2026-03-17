@@ -1,19 +1,18 @@
-
 {
   "entities": {
     "UserProfile": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "UserProfile",
       "type": "object",
-      "description": "Represents the editable profile information for a user within the VoyageFlow application.",
+      "description": "Represents a user's profile information within the VoyageFlow application. Authentication details are handled by an external system.",
       "properties": {
         "id": {
           "type": "string",
-          "description": "Unique identifier for the UserProfile entity. This typically corresponds to the user's ID from the external authentication system."
+          "description": "Unique identifier for the UserProfile entity."
         },
         "email": {
           "type": "string",
-          "description": "The user's email address, primarily used for communication. Managed by the external authentication system.",
+          "description": "The user's primary email address.",
           "format": "email"
         },
         "firstName": {
@@ -26,37 +25,16 @@
         },
         "phoneNumber": {
           "type": "string",
-          "description": "The user's contact phone number."
-        },
-        "addressStreet": {
-          "type": "string",
-          "description": "The street address of the user."
-        },
-        "addressCity": {
-          "type": "string",
-          "description": "The city of the user's address."
-        },
-        "addressPostalCode": {
-          "type": "string",
-          "description": "The postal code of the user's address."
-        },
-        "addressCountry": {
-          "type": "string",
-          "description": "The country of the user's address."
-        },
-        "profileImageUrl": {
-          "type": "string",
-          "description": "URL to the user's profile picture.",
-          "format": "uri"
+          "description": "The user's phone number, optional for communication."
         },
         "createdAt": {
           "type": "string",
-          "description": "Timestamp indicating when the user profile was created.",
+          "description": "Timestamp when the user profile was created.",
           "format": "date-time"
         },
         "updatedAt": {
           "type": "string",
-          "description": "Timestamp indicating when the user profile was last updated.",
+          "description": "Timestamp when the user profile was last updated.",
           "format": "date-time"
         }
       },
@@ -69,11 +47,157 @@
         "updatedAt"
       ]
     },
+    "TravelService": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "TravelService",
+      "type": "object",
+      "description": "Represents a searchable travel service available through VoyageFlow, such as flights, hotels, or activities.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the TravelService entity."
+        },
+        "name": {
+          "type": "string",
+          "description": "The name of the travel service (e.g., 'Hilton Hotel NYC', 'Flight to Paris')."
+        },
+        "description": {
+          "type": "string",
+          "description": "A detailed description of the travel service."
+        },
+        "type": {
+          "type": "string",
+          "description": "The category of the travel service (e.g., 'flight', 'hotel', 'activity')."
+        },
+        "locationName": {
+          "type": "string",
+          "description": "The geographical location associated with the service (e.g., 'Paris', 'New York City')."
+        },
+        "basePrice": {
+          "type": "number",
+          "description": "The starting or base price of the service."
+        },
+        "currency": {
+          "type": "string",
+          "description": "The currency of the base price (e.g., 'USD', 'NGN')."
+        },
+        "provider": {
+          "type": "string",
+          "description": "The company or entity providing the service (e.g., 'AirFrance', 'Booking.com')."
+        },
+        "imageUrl": {
+          "type": "string",
+          "description": "URL to an image representing the travel service.",
+          "format": "uri"
+        },
+        "rating": {
+          "type": "number",
+          "description": "An optional rating for the service, typically on a scale (e.g., 1-5)."
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "description",
+        "type",
+        "locationName",
+        "basePrice",
+        "currency",
+        "provider"
+      ]
+    },
+    "BookingBasket": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "BookingBasket",
+      "type": "object",
+      "description": "Represents a temporary collection of selected travel services by a user before proceeding to checkout.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the BookingBasket entity."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to the UserProfile who owns this basket. (Relationship: UserProfile 1:N BookingBasket)"
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp when the booking basket was created.",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Timestamp when the booking basket was last updated.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "BasketItem": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "BasketItem",
+      "type": "object",
+      "description": "Represents a single travel service added to a user's booking basket.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the BasketItem entity."
+        },
+        "basketId": {
+          "type": "string",
+          "description": "Reference to the BookingBasket this item belongs to. (Relationship: BookingBasket 1:N BasketItem)"
+        },
+        "travelServiceId": {
+          "type": "string",
+          "description": "Reference to the TravelService being added. (Relationship: TravelService 1:N BasketItem)"
+        },
+        "quantity": {
+          "type": "number",
+          "description": "The number of units for the service (e.g., number of rooms, tickets)."
+        },
+        "priceAtTimeOfAddition": {
+          "type": "number",
+          "description": "The price of the service per unit at the time it was added to the basket."
+        },
+        "startDate": {
+          "type": "string",
+          "description": "The start date and time for the service (e.g., flight departure, hotel check-in).",
+          "format": "date-time"
+        },
+        "endDate": {
+          "type": "string",
+          "description": "The end date and time for the service (e.g., flight arrival, hotel check-out).",
+          "format": "date-time"
+        },
+        "paxAdults": {
+          "type": "number",
+          "description": "The number of adult passengers or guests for this service."
+        },
+        "paxChildren": {
+          "type": "number",
+          "description": "The number of child passengers or guests for this service."
+        }
+      },
+      "required": [
+        "id",
+        "basketId",
+        "travelServiceId",
+        "quantity",
+        "priceAtTimeOfAddition",
+        "startDate",
+        "paxAdults"
+      ]
+    },
     "Booking": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Booking",
       "type": "object",
-      "description": "Stores details about a user's confirmed travel booking, acting as a container for individual booking items.",
+      "description": "Represents a confirmed travel booking made by a user through VoyageFlow.",
       "properties": {
         "id": {
           "type": "string",
@@ -81,62 +205,50 @@
         },
         "userId": {
           "type": "string",
-          "description": "Reference to the UserProfile who made this booking. (Relationship: UserProfile 1:N Booking)"
+          "description": "Reference to the UserProfile who made the booking. (Relationship: UserProfile 1:N Booking)"
         },
         "bookingReference": {
           "type": "string",
-          "description": "A unique, human-readable reference code generated for this booking, often used for external lookups and customer service."
-        },
-        "bookingDate": {
-          "type": "string",
-          "description": "The date and time when the booking was successfully confirmed and completed.",
-          "format": "date-time"
-        },
-        "status": {
-          "type": "string",
-          "description": "The current status of the entire booking (e.g., 'Confirmed', 'Pending', 'Cancelled', 'Completed')."
+          "description": "A unique, human-readable reference code for the booking."
         },
         "totalAmount": {
           "type": "number",
-          "description": "The grand total monetary amount of the booking, combining all booking items."
+          "description": "The total amount paid for this booking across all its items."
         },
         "currency": {
           "type": "string",
-          "description": "The three-letter ISO 4217 currency code for the total amount (e.g., 'USD', 'EUR', 'NGN')."
+          "description": "The currency of the total amount."
+        },
+        "status": {
+          "type": "string",
+          "description": "The current status of the booking (e.g., 'pending', 'confirmed', 'cancelled', 'completed')."
+        },
+        "bookingDate": {
+          "type": "string",
+          "description": "Timestamp when the booking was confirmed.",
+          "format": "date-time"
         },
         "paymentId": {
           "type": "string",
-          "description": "A unique transaction identifier provided by the payment gateway (e.g., Paystack) for this booking's payment."
-        },
-        "createdAt": {
-          "type": "string",
-          "description": "Timestamp indicating when the booking record was created in the system.",
-          "format": "date-time"
-        },
-        "updatedAt": {
-          "type": "string",
-          "description": "Timestamp indicating when the booking record was last updated.",
-          "format": "date-time"
+          "description": "Reference to the Payment associated with this booking. (Relationship: Booking 1:1 Payment)"
         }
       },
       "required": [
         "id",
         "userId",
         "bookingReference",
-        "bookingDate",
-        "status",
         "totalAmount",
         "currency",
-        "paymentId",
-        "createdAt",
-        "updatedAt"
+        "status",
+        "bookingDate",
+        "paymentId"
       ]
     },
     "BookingItem": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "BookingItem",
       "type": "object",
-      "description": "Represents a specific travel service (e.g., a flight segment, a hotel stay, an activity) included within a larger Booking.",
+      "description": "Represents a single travel service included within a confirmed booking.",
       "properties": {
         "id": {
           "type": "string",
@@ -144,104 +256,207 @@
         },
         "bookingId": {
           "type": "string",
-          "description": "Reference to the parent Booking this item belongs to. (Relationship: Booking 1:N BookingItem)"
+          "description": "Reference to the Booking this item belongs to. (Relationship: Booking 1:N BookingItem)"
         },
-        "itemType": {
+        "travelServiceId": {
           "type": "string",
-          "description": "The type of travel service booked for this item (e.g., 'Flight', 'Hotel', 'Activity', 'Package')."
-        },
-        "name": {
-          "type": "string",
-          "description": "A concise, descriptive name for the booked item (e.g., 'Morning Flight to Paris', 'Hilton Room - 3 Nights')."
-        },
-        "description": {
-          "type": "string",
-          "description": "A detailed description of the booked item, including specifics like airline, flight number, hotel name, room type, activity details."
-        },
-        "unitPrice": {
-          "type": "number",
-          "description": "The price of a single unit of this booking item before quantity multiplication."
+          "description": "Reference to the TravelService that was booked. (Relationship: TravelService 1:N BookingItem)"
         },
         "quantity": {
           "type": "number",
-          "description": "The number of units booked for this item (e.g., number of flight tickets, number of nights for a hotel, number of activity participants)."
+          "description": "The number of units for the service as part of the booking."
         },
-        "totalItemPrice": {
+        "priceAtTimeOfBooking": {
           "type": "number",
-          "description": "The total monetary amount for this specific booking item (unitPrice multiplied by quantity)."
+          "description": "The price of the service per unit at the time the booking was confirmed."
         },
         "startDate": {
           "type": "string",
-          "description": "The start date and time of the service (e.g., flight departure, hotel check-in, activity start).",
+          "description": "The confirmed start date and time for the service.",
           "format": "date-time"
         },
         "endDate": {
           "type": "string",
-          "description": "The end date and time of the service (e.g., flight arrival, hotel check-out, activity end).",
+          "description": "The confirmed end date and time for the service.",
           "format": "date-time"
         },
-        "locationDetails": {
-          "type": "string",
-          "description": "Specific geographical or venue details related to the service (e.g., airport codes, hotel address, activity meeting point)."
+        "paxAdults": {
+          "type": "number",
+          "description": "The number of adult passengers or guests for this booked service."
         },
-        "externalReferenceId": {
-          "type": "string",
-          "description": "An identifier from the external service provider (e.g., airline PNR, hotel reservation number) for this specific item."
+        "paxChildren": {
+          "type": "number",
+          "description": "The number of child passengers or guests for this booked service."
         },
-        "serviceProvider": {
+        "itemStatus": {
           "type": "string",
-          "description": "The name of the external company providing the service (e.g., 'Air France', 'Hilton Hotels', 'Kayak Tours')."
+          "description": "The status of this specific item within the booking (e.g., 'confirmed', 'awaiting_confirmation', 'cancelled')."
+        }
+      },
+      "required": [
+        "id",
+        "bookingId",
+        "travelServiceId",
+        "quantity",
+        "priceAtTimeOfBooking",
+        "startDate",
+        "paxAdults",
+        "itemStatus"
+      ]
+    },
+    "Payment": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Payment",
+      "type": "object",
+      "description": "Records details of a payment transaction for a booking within VoyageFlow, integrated with Paystack.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Payment entity."
         },
-        "createdAt": {
+        "bookingId": {
           "type": "string",
-          "description": "Timestamp indicating when the booking item record was created.",
-          "format": "date-time"
+          "description": "Reference to the Booking associated with this payment. (Relationship: Booking 1:1 Payment)"
         },
-        "updatedAt": {
+        "userId": {
           "type": "string",
-          "description": "Timestamp indicating when the booking item record was last updated.",
+          "description": "Reference to the UserProfile who initiated the payment. (Relationship: UserProfile 1:N Payment)"
+        },
+        "transactionId": {
+          "type": "string",
+          "description": "The unique transaction identifier provided by the payment gateway (e.g., Paystack)."
+        },
+        "amount": {
+          "type": "number",
+          "description": "The amount of money paid in this transaction."
+        },
+        "currency": {
+          "type": "string",
+          "description": "The currency of the payment amount."
+        },
+        "status": {
+          "type": "string",
+          "description": "The status of the payment (e.g., 'initiated', 'succeeded', 'failed', 'refunded')."
+        },
+        "paymentGateway": {
+          "type": "string",
+          "description": "The name of the payment gateway used (e.g., 'Paystack')."
+        },
+        "paymentDate": {
+          "type": "string",
+          "description": "Timestamp when the payment transaction occurred.",
           "format": "date-time"
         }
       },
       "required": [
         "id",
         "bookingId",
-        "itemType",
-        "name",
-        "description",
-        "unitPrice",
-        "quantity",
-        "totalItemPrice",
-        "startDate",
-        "endDate",
-        "serviceProvider",
-        "createdAt",
-        "updatedAt"
+        "userId",
+        "transactionId",
+        "amount",
+        "currency",
+        "status",
+        "paymentGateway",
+        "paymentDate"
       ]
     }
   },
   "auth": {
     "providers": [
       "password",
-      "anonymous",
-      "google.com",
-      "facebook.com"
+      "anonymous"
     ]
   },
   "firestore": {
     "structure": [
       {
-        "path": "/users/{userId}/profile",
+        "path": "/users/{userId}",
         "definition": {
           "entityName": "UserProfile",
           "schema": {
             "$ref": "#/backend/entities/UserProfile"
           },
-          "description": "Stores individual user profile data, accessible only by the owning user. The 'id' field within the document will match the 'userId' path parameter for authorization independence.",
+          "description": "Stores individual user profile data. Access is strictly limited to the user whose ID matches the document ID. This path ensures path-based ownership and simplifies rules.",
           "params": [
             {
               "name": "userId",
-              "description": "The unique identifier of the user, corresponding to Firebase Authentication UID."
+              "description": "The unique ID of the user, matching request.auth.uid."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/travel_services/{travelServiceId}",
+        "definition": {
+          "entityName": "TravelService",
+          "schema": {
+            "$ref": "#/backend/entities/TravelService"
+          },
+          "description": "Contains publicly searchable travel service listings (flights, hotels, activities). All authenticated users can read this collection, while write access is restricted to administrators.",
+          "params": [
+            {
+              "name": "travelServiceId",
+              "description": "The unique ID of the travel service."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/roles_admin/{userId}",
+        "definition": {
+          "entityName": "roles_admin",
+          "schema": {
+            "$ref": "#/backend/entities/UserProfile"
+          },
+          "description": "A collection used for Database Access Control (DBAC) to grant administrator privileges. The existence of a document for a specific userId signifies administrative rights for that user. This is an implicit entity, typically containing minimal data like a timestamp.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique ID of the user who possesses administrator privileges."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/booking_baskets/{basketId}",
+        "definition": {
+          "entityName": "BookingBasket",
+          "schema": {
+            "$ref": "#/backend/entities/BookingBasket"
+          },
+          "description": "Represents a user's temporary collection of selected travel services. Owned by the user specified in the path.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique ID of the user who owns this booking basket."
+            },
+            {
+              "name": "basketId",
+              "description": "The unique ID of the booking basket."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/booking_baskets/{basketId}/basket_items/{basketItemId}",
+        "definition": {
+          "entityName": "BasketItem",
+          "schema": {
+            "$ref": "#/backend/entities/BasketItem"
+          },
+          "description": "Represents a single travel service added to a user's booking basket. Includes denormalized 'userId' from the parent user's path for authorization independence, ensuring atomic security rule evaluations.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique ID of the user who owns the parent booking basket."
+            },
+            {
+              "name": "basketId",
+              "description": "The unique ID of the parent booking basket."
+            },
+            {
+              "name": "basketItemId",
+              "description": "The unique ID of the basket item."
             }
           ]
         }
@@ -253,44 +468,64 @@
           "schema": {
             "$ref": "#/backend/entities/Booking"
           },
-          "description": "Collection of bookings made by a specific user. The 'userId' field in the document denormalizes ownership for authorization independence, ensuring that security rules do not require a 'get()' operation on the parent user document. Supports secure list operations.",
+          "description": "Represents a confirmed travel booking made by a user. Owned by the user specified in the path.",
           "params": [
             {
               "name": "userId",
-              "description": "The unique identifier of the user who owns this booking."
+              "description": "The unique ID of the user who made this booking."
             },
             {
               "name": "bookingId",
-              "description": "The unique identifier for a specific booking."
+              "description": "The unique ID of the booking."
             }
           ]
         }
       },
       {
-        "path": "/users/{userId}/bookings/{bookingId}/bookingItems/{bookingItemId}",
+        "path": "/users/{userId}/bookings/{bookingId}/booking_items/{bookingItemId}",
         "definition": {
           "entityName": "BookingItem",
           "schema": {
             "$ref": "#/backend/entities/BookingItem"
           },
-          "description": "Collection of individual items (e.g., flights, hotels) within a specific booking. The 'userId' field is denormalized from the grandparent user document for authorization independence. This eliminates the need for 'get()' operations on parent documents within security rules and supports secure list operations.",
+          "description": "Represents a single travel service included within a confirmed booking. Includes denormalized 'userId' from the parent booking's path for authorization independence, ensuring atomic security rule evaluations.",
           "params": [
             {
               "name": "userId",
-              "description": "The unique identifier of the user who owns this booking item's parent booking."
+              "description": "The unique ID of the user who owns the parent booking."
             },
             {
               "name": "bookingId",
-              "description": "The unique identifier of the parent booking."
+              "description": "The unique ID of the parent booking."
             },
             {
               "name": "bookingItemId",
-              "description": "The unique identifier for a specific booking item."
+              "description": "The unique ID of the booking item."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/payments/{paymentId}",
+        "definition": {
+          "entityName": "Payment",
+          "schema": {
+            "$ref": "#/backend/entities/Payment"
+          },
+          "description": "Records details of a payment transaction associated with a user and a booking. Owned by the user specified in the path.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique ID of the user who initiated this payment."
+            },
+            {
+              "name": "paymentId",
+              "description": "The unique ID of the payment transaction."
             }
           ]
         }
       }
     ],
-    "reasoning": "The recommended Firestore structure prioritizes Authorization Independence and Structural Segregation to ensure robust, debuggable security rules and efficient queries. \n\n1.  **UserProfile (`/users/{userId}/profile`):** User profiles are stored as subcollections under a top-level `/users` collection. Each user's profile document is uniquely identified by their Firebase Authentication UID (`userId`), which is explicitly part of the path. This leverages **Path-Based Ownership (C.1)**, making authorization trivial: `request.auth.uid` must match `{userId}` in the path. The `UserProfile.id` field will also mirror the `userId` in the path, reinforcing ownership and achieving **Authorization Independence (A)** without any `get()` calls.\n\n2.  **Bookings (`/users/{userId}/bookings/{bookingId}`):** Bookings are also user-specific and follow a hierarchical path within the user's data. Each booking document resides under `/users/{userId}/bookings/{bookingId}`. The `Booking.userId` field is explicitly included in the document, which **denormalizes** the owner information. This denormalization is crucial for **Authorization Independence (A)**; rules for individual `Booking` documents can directly check `resource.data.userId == request.auth.uid` without needing to perform a `get()` on the parent user document. This also perfectly supports **QAPs (Query as a security Policy - D.2)** for listing, as a user can only query their own `bookings` subcollection (`/users/{request.auth.uid}/bookings`), and the `userId` in the path ensures this scope.\n\n3.  **BookingItems (`/users/{userId}/bookings/{bookingId}/bookingItems/{bookingItemId}`):** Booking items are nested under their respective bookings, continuing the hierarchical structure. To maintain **Authorization Independence (A)** for `BookingItem` documents, the `userId` from the grandparent `User` is **denormalized** and included directly within each `BookingItem` document (i.e., `BookingItem.userId`). This is a critical design choice: it prevents rules from having to `get()` the parent `Booking` document or the grandparent `User` document to verify ownership. The security rule for `BookingItem` can simply check `resource.data.userId == request.auth.uid`, making it atomic and highly performant. This structure also supports **QAPs**, allowing a user to securely list their own booking items for a specific booking (`/users/{request.auth.uid}/bookings/{bookingId}/bookingItems`) because the `userId` in the path and within the document ensures all items belong to the authenticated user."
+    "reasoning": "The Firestore structure for VoyageFlow prioritizes secure, scalable, and debuggable authorization by strictly adhering to the core design principles and mandates. \n\n**Authorization Independence:** This is achieved by embedding user ownership directly into the document path for all user-specific data and denormalizing the `userId` into subcollection documents where the security rules would otherwise require a parent lookup. For example, `BasketItem` and `BookingItem` documents, residing in subcollections, will explicitly include a `userId` field that matches the `userId` in their ancestral path. This ensures that a document's authorization context is self-contained, eliminating the need for `get()` calls in security rules to check parent ownership. This design makes read/write operations atomic from a rules perspective and greatly simplifies debugging.\n\n**Structural Segregation and QAPs (Queryable Authorization Postures):**\n1.  **User-Owned Private Data:** All data directly owned by a user (`UserProfile`, `BookingBasket`, `BasketItem`, `Booking`, `BookingItem`, `Payment`) is organized under `/users/{userId}/...`. This path-based ownership intrinsically scopes `list` operations (QAPs) such that a user can only query their own data. For instance, a query to `/users/{request.auth.uid}/bookings` will only return bookings belonging to the authenticated user, satisfying the QAP principle by not relying on rules to filter results after retrieval.\n2.  **Public/Global Data:** `TravelService` data, which needs to be accessible for searching by all users, is placed in a top-level collection `/travel_services`. This allows any authenticated user to `list` and read available services globally, adhering to QAP by providing a collection with a homogeneous security posture (read-all authenticated, write-admin). This avoids mixing public and private data, simplifying rules significantly.\n3.  **DBAC (Database Access Control):** Global roles, specifically 'admin' for managing `TravelService` data, are implemented using 'existence over content' in a dedicated collection `/roles_admin/{userId}`. The presence of a document at `/roles_admin/$(request.auth.uid)` grants admin privileges, enabling simple rule checks without custom claims.\n\n**Access Modeling:** The design consistently uses hierarchical paths for user-owned data (`/users/{userId}/threads/{threadId}`) and continues this hierarchy for nested data (`/users/{userId}/threads/{threadId}/messages/{messageId}`). This pattern makes ownership explicit and security rules straightforward, focusing on `request.auth.uid` matching the path wildcard `userId` or the denormalized `userId` field.\n\n**Data Clarity and Predictability:** Semantic wildcards (`{userId}`, `{basketId}`, `{bookingId}`) are used consistently. The `status` field in entities like `Booking` and `BookingItem` explicitly models their state, reducing ambiguity. Denormalized fields are explicitly mentioned in path descriptions to ensure developers are aware of their purpose and maintenance requirements.\n\nOverall, this structure provides a robust foundation for VoyageFlow, ensuring security and maintainability of its Firestore data."
   }
 }
