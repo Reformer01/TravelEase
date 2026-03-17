@@ -4,15 +4,14 @@
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { Mail, Lock, Globe, Chrome, Facebook, ArrowRight, User, CheckCircle2 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Checkbox } from '@/components/ui/checkbox';
 import { useAuth } from '@/firebase';
 import { initiateEmailSignIn, initiateEmailSignUp } from '@/firebase/non-blocking-login';
 import { GoogleAuthProvider, signInWithPopup, FacebookAuthProvider } from 'firebase/auth';
 import Image from 'next/image';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
 
 export default function AuthPage() {
   const router = useRouter();
@@ -20,6 +19,7 @@ export default function AuthPage() {
   const auth = useAuth();
   const [view, setView] = useState<'login' | 'register'>('login');
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     const mode = searchParams.get('mode');
@@ -39,8 +39,7 @@ export default function AuthPage() {
       } else {
         initiateEmailSignUp(auth, email, password);
       }
-      // Success is handled by the provider's onAuthStateChanged which usually triggers a redirect
-      // We'll add a slight delay for better UX
+      // Delay for UX transition
       setTimeout(() => router.push('/'), 1500);
     } catch (error) {
       console.error("Auth error:", error);
@@ -61,177 +60,200 @@ export default function AuthPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-slate-50 relative overflow-hidden">
-      {/* Background Image with Overlay */}
-      <div className="absolute inset-0 z-0">
-        <Image 
-          src="https://picsum.photos/seed/travel-bg/1920/1080" 
-          alt="Travel Background" 
-          fill 
-          className="object-cover"
-          priority
-        />
-        <div className="absolute inset-0 bg-slate-900/20 backdrop-blur-[2px]"></div>
-      </div>
-
-      <main className="relative w-full max-w-5xl flex flex-col md:flex-row shadow-2xl rounded-3xl overflow-hidden glass-card min-h-[600px] z-10 border border-white/40">
-        
-        {/* Visual Brand Section */}
-        <section className="hidden md:flex md:w-1/2 relative p-12 flex-col justify-between text-white overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-br from-blue-600/60 to-indigo-900/80 z-0"></div>
+    <div className="min-h-screen flex items-center justify-center p-4 md:p-8 bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 antialiased">
+      <div className="max-w-6xl w-full grid grid-cols-1 lg:grid-cols-2 overflow-hidden rounded-xl shadow-2xl bg-white dark:bg-slate-900 min-h-[700px]">
+        {/* Left Pane: Branding & Inspiration */}
+        <div className="relative hidden lg:flex flex-col justify-between p-12 text-white overflow-hidden">
+          <div className="absolute inset-0 z-0">
+            <div className="absolute inset-0 bg-gradient-to-t from-primary/90 to-primary/40 z-10"></div>
+            <Image 
+              src="https://picsum.photos/seed/travel-auth/1200/1200" 
+              alt="Scenic mountain lake landscape" 
+              fill 
+              className="object-cover"
+              priority
+              data-ai-hint="mountain lake"
+            />
+          </div>
           
-          <div className="relative z-10">
-            <Link href="/" className="flex items-center gap-2 mb-12">
-              <div className="bg-blue-400/20 p-2 rounded-lg backdrop-blur-md">
-                <Globe className="h-8 w-8 text-blue-400" />
-              </div>
-              <span className="text-2xl font-bold tracking-tight">TravelEase</span>
-            </Link>
-            
-            <h1 className="text-5xl font-extrabold leading-tight mb-6">
-              Your next adventure <br/> starts here.
-            </h1>
-            <p className="text-lg text-blue-50 max-w-sm">
-              Explore hidden gems and iconic landmarks around the globe with our curated travel experiences.
-            </p>
+          <div className="relative z-20 flex items-center gap-2">
+            <span className="material-symbols-outlined text-4xl">flight_takeoff</span>
+            <h1 className="text-2xl font-bold tracking-tight">TravelEase</h1>
           </div>
 
-          <div className="relative z-10">
-            <div className="flex -space-x-3 mb-4">
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="h-10 w-10 rounded-full border-2 border-white overflow-hidden relative shadow-lg">
-                  <Image 
-                    src={`https://picsum.photos/seed/traveler-${i}/40/40`} 
-                    alt={`Explorer ${i}`} 
-                    fill 
-                    className="object-cover"
-                  />
-                </div>
-              ))}
+          <div className="relative z-20">
+            <blockquote className="text-4xl font-bold leading-tight mb-6">
+              "The world is a book and those who do not travel read only one page."
+            </blockquote>
+            <p className="text-lg text-white/80">— Saint Augustine</p>
+          </div>
+
+          <div className="relative z-20 flex gap-4">
+            <div className={`h-1 w-12 rounded-full transition-all duration-300 ${view === 'login' ? 'bg-white' : 'bg-white/30'}`}></div>
+            <div className={`h-1 w-12 rounded-full transition-all duration-300 ${view === 'register' ? 'bg-white' : 'bg-white/30'}`}></div>
+            <div className="h-1 w-12 bg-white/30 rounded-full"></div>
+          </div>
+        </div>
+
+        {/* Right Pane: Auth Forms */}
+        <div className="flex flex-col p-8 md:p-12 lg:p-16 justify-center">
+          <div className="w-full max-w-md mx-auto">
+            <div className="flex items-center gap-2 mb-8 lg:hidden text-primary">
+              <span className="material-symbols-outlined text-3xl">flight_takeoff</span>
+              <h2 className="text-xl font-bold">TravelEase</h2>
             </div>
-            <p className="text-sm text-blue-100 font-medium">
-              Joined by <span className="text-white font-bold">50,000+</span> world explorers
-            </p>
-          </div>
-        </section>
 
-        {/* Form Section */}
-        <section className="w-full md:w-1/2 p-8 md:p-12 bg-white flex flex-col justify-center">
-          {/* Tab Switch */}
-          <div className="flex border-b border-gray-100 mb-8">
-            <button 
-              className={`py-3 px-6 text-sm font-bold transition-all border-b-2 ${view === 'login' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-400 hover:text-gray-600'}`}
-              onClick={() => setView('login')}
-            >
-              Login
-            </button>
-            <button 
-              className={`py-3 px-6 text-sm font-bold transition-all border-b-2 ${view === 'register' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-400 hover:text-gray-600'}`}
-              onClick={() => setView('register')}
-            >
-              Register
-            </button>
-          </div>
+            <div className="mb-10">
+              <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">
+                {view === 'login' ? 'Welcome Back' : 'Create Account'}
+              </h2>
+              <p className="text-slate-500 dark:text-slate-400">
+                {view === 'login' ? 'Please enter your details to access your account.' : 'Join us and start planning your next journey.'}
+              </p>
+            </div>
 
-          <div className="space-y-6">
-            {view === 'login' ? (
-              <header>
-                <h2 className="text-3xl font-bold text-gray-900 tracking-tight">Welcome Back</h2>
-                <p className="text-gray-500 mt-2">Please enter your details to access your trips.</p>
-              </header>
-            ) : (
-              <header>
-                <h2 className="text-3xl font-bold text-gray-900 tracking-tight">Create Account</h2>
-                <p className="text-gray-500 mt-2">Join the community and plan your next journey.</p>
-              </header>
-            )}
+            {/* Tabs */}
+            <div className="flex border-b border-slate-200 dark:border-slate-800 mb-8">
+              <button 
+                className={`flex-1 py-3 text-sm font-bold border-b-2 transition-all duration-300 ${view === 'login' ? 'border-primary text-primary' : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-primary'}`}
+                onClick={() => setView('login')}
+              >
+                Login
+              </button>
+              <button 
+                className={`flex-1 py-3 text-sm font-bold border-b-2 transition-all duration-300 ${view === 'register' ? 'border-primary text-primary' : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-primary'}`}
+                onClick={() => setView('register')}
+              >
+                Register
+              </button>
+            </div>
 
-            <form onSubmit={handleEmailAuth} className="space-y-4">
+            {/* Social Logins */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+              <button 
+                type="button"
+                onClick={() => handleSocialLogin('google')}
+                className="flex items-center justify-center gap-3 px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all"
+              >
+                <svg className="w-5 h-5" viewBox="0 0 24 24">
+                  <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"></path>
+                  <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"></path>
+                  <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"></path>
+                  <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"></path>
+                </svg>
+                <span className="text-sm font-semibold">Google</span>
+              </button>
+              <button 
+                type="button"
+                onClick={() => handleSocialLogin('facebook')}
+                className="flex items-center justify-center gap-3 px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all"
+              >
+                <svg className="w-5 h-5" fill="#1877F2" viewBox="0 0 24 24">
+                  <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.469h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"></path>
+                </svg>
+                <span className="text-sm font-semibold">Facebook</span>
+              </button>
+            </div>
+
+            <div className="relative mb-8">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-slate-200 dark:border-slate-800"></div>
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-4 bg-white dark:bg-slate-900 text-slate-500">Or continue with email</span>
+              </div>
+            </div>
+
+            {/* Form */}
+            <form onSubmit={handleEmailAuth} className="space-y-5">
               {view === 'register' && (
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="fname">First Name</Label>
-                    <Input id="fname" name="fname" placeholder="John" required className="h-11 rounded-xl" />
+                  <div className="space-y-1.5">
+                    <Label htmlFor="fname" className="block text-sm font-medium text-slate-700 dark:text-slate-300">First Name</Label>
+                    <Input 
+                      className="w-full h-12 rounded-xl border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all dark:text-white" 
+                      id="fname" 
+                      name="fname" 
+                      placeholder="John" 
+                      required 
+                    />
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="lname">Last Name</Label>
-                    <Input id="lname" name="lname" placeholder="Doe" required className="h-11 rounded-xl" />
+                  <div className="space-y-1.5">
+                    <Label htmlFor="lname" className="block text-sm font-medium text-slate-700 dark:text-slate-300">Last Name</Label>
+                    <Input 
+                      className="w-full h-12 rounded-xl border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all dark:text-white" 
+                      id="lname" 
+                      name="lname" 
+                      placeholder="Doe" 
+                      required 
+                    />
                   </div>
                 </div>
               )}
 
-              <div className="space-y-2">
-                <Label htmlFor="email">Email Address</Label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                  <Input id="email" name="email" type="email" placeholder="alex@example.com" className="pl-10 h-11 rounded-xl" required />
-                </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="email" className="block text-sm font-medium text-slate-700 dark:text-slate-300">Email Address</Label>
+                <Input 
+                  className="w-full h-12 rounded-xl border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all dark:text-white" 
+                  id="email" 
+                  name="email" 
+                  placeholder="name@example.com" 
+                  type="email" 
+                  required 
+                />
               </div>
 
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="password">Password</Label>
-                  {view === 'login' && (
-                    <Link href="#" className="text-xs text-blue-600 font-bold hover:underline">Forgot password?</Link>
-                  )}
+              <div className="space-y-1.5">
+                <div className="flex justify-between">
+                  <Label htmlFor="password" className="block text-sm font-medium text-slate-700 dark:text-slate-300">Password</Label>
+                  {view === 'login' && <Link className="text-sm font-semibold text-primary hover:underline" href="#">Forgot password?</Link>}
                 </div>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                  <Input id="password" name="password" type="password" placeholder="••••••••" className="pl-10 h-11 rounded-xl" required minLength={8} />
+                  <Input 
+                    className="w-full h-12 rounded-xl border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all dark:text-white pr-12" 
+                    id="password" 
+                    name="password" 
+                    placeholder="••••••••" 
+                    type={showPassword ? 'text' : 'password'} 
+                    required 
+                    minLength={8} 
+                  />
+                  <button 
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors" 
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                  >
+                    <span className="material-symbols-outlined text-[20px]">
+                      {showPassword ? 'visibility_off' : 'visibility'}
+                    </span>
+                  </button>
                 </div>
               </div>
 
               {view === 'login' && (
-                <div className="flex items-center space-x-2">
-                  <Checkbox id="remember" className="rounded-md" />
-                  <label htmlFor="remember" className="text-sm font-medium text-gray-600 cursor-pointer">Remember me</label>
+                <div className="flex items-center">
+                  <Checkbox className="h-4 w-4 rounded border-slate-300 text-primary focus:ring-primary" id="remember-me" name="remember-me" />
+                  <label className="ml-2 block text-sm text-slate-700 dark:text-slate-300" htmlFor="remember-me">
+                    Remember me for 30 days
+                  </label>
                 </div>
               )}
 
               <Button 
-                type="submit" 
-                className={`w-full h-12 text-lg font-bold group rounded-xl transition-all ${view === 'login' ? 'bg-blue-600 hover:bg-blue-700' : 'bg-indigo-600 hover:bg-indigo-700'}`} 
+                className="w-full bg-primary hover:bg-primary/90 text-white font-bold h-14 rounded-xl transition-all shadow-lg shadow-primary/20 active:scale-[0.98]" 
+                type="submit"
                 disabled={loading}
               >
                 {loading ? 'Processing...' : (view === 'login' ? 'Sign In' : 'Create Account')}
-                <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
               </Button>
             </form>
 
-            <div className="relative mt-8">
-              <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t border-gray-100" />
-              </div>
-              <div className="relative flex justify-center text-xs uppercase tracking-widest font-semibold">
-                <span className="bg-white px-3 text-gray-400">Or continue with</span>
-              </div>
+            <div className="mt-8 text-center text-sm text-slate-500 dark:text-slate-400">
+              <p>By {view === 'login' ? 'signing in' : 'registering'}, you agree to TravelEase's <Link className="underline hover:text-primary" href="#">Terms of Service</Link> and <Link className="underline hover:text-primary" href="#">Privacy Policy</Link>.</p>
             </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <Button 
-                variant="outline" 
-                className="h-12 font-bold gap-3 rounded-xl border-gray-200 hover:bg-gray-50 transition-all group" 
-                onClick={() => handleSocialLogin('google')}
-              >
-                <Chrome className="h-5 w-5 text-red-500 group-hover:scale-110 transition-transform" /> Google
-              </Button>
-              <Button 
-                variant="outline" 
-                className="h-12 font-bold gap-3 rounded-xl bg-[#1877F2] text-white border-transparent hover:bg-[#166fe5] transition-all group" 
-                onClick={() => handleSocialLogin('facebook')}
-              >
-                <Facebook className="h-5 w-5 fill-current group-hover:scale-110 transition-transform" /> Facebook
-              </Button>
-            </div>
-
-            {view === 'register' && (
-              <p className="text-[11px] text-gray-400 text-center">
-                By clicking Register, you agree to our <Link href="#" className="text-blue-600 hover:underline">Terms</Link> and <Link href="#" className="text-blue-600 hover:underline">Privacy Policy</Link>.
-              </p>
-            )}
           </div>
-        </section>
-      </main>
+        </div>
+      </div>
     </div>
   );
 }
