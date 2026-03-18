@@ -3,7 +3,8 @@ import type { Metadata } from 'next';
 import './globals.css';
 import { BasketProvider } from '@/context/basket-context';
 import { Toaster } from '@/components/ui/toaster';
-import { FirebaseClientProvider } from '@/firebase';
+import { SupabaseClientProvider } from '@/supabase/provider';
+import { HydrationProvider } from '@/components/hydration-provider';
 
 export const metadata: Metadata = {
   title: 'TravelEase | Find Your Next Adventure',
@@ -25,12 +26,14 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
       </head>
       <body className="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 antialiased" suppressHydrationWarning>
-        <FirebaseClientProvider>
-          <BasketProvider>
-            {children}
-            <Toaster />
-          </BasketProvider>
-        </FirebaseClientProvider>
+        <HydrationProvider>
+          <SupabaseClientProvider>
+            <BasketProvider>
+              {children}
+              <Toaster />
+            </BasketProvider>
+          </SupabaseClientProvider>
+        </HydrationProvider>
       </body>
     </html>
   );

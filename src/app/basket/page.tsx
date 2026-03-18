@@ -4,15 +4,18 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { useBasket } from '@/context/basket-context';
-import { useUser } from '@/firebase';
+import { useAuth, useUser } from '@/supabase';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 export default function BasketPage() {
-  const { items, removeFromBasket, totalPrice } = useBasket();
+  const { items, removeFromBasket, totalPrice, isLoading } = useBasket();
   const { user } = useUser();
+  const auth = useAuth();
   const router = useRouter();
   const [isVerifying, setIsVerifying] = useState(false);
+
+  const loginFor = (path: string) => `/auth/login?next=${encodeURIComponent(path)}`;
 
   const flights = items.filter(item => item.type === 'flight');
   const hotels = items.filter(item => item.type === 'hotel');
@@ -21,17 +24,41 @@ export default function BasketPage() {
   const taxesAndFees = Math.floor(totalPrice * 0.08);
   const grandTotal = totalPrice + taxesAndFees;
 
-  const handleVerify = () => {
+  const handleVerify = async () => {
+    if (!user) {
+      router.push(loginFor('/basket'));
+      return;
+    }
     setIsVerifying(true);
-    // Simulate real-time availability check from PRD
-    setTimeout(() => {
+    try {
+      const { data, error } = await auth.auth.getSession();
+      if (error) throw error;
+      const accessToken = data.session?.access_token;
+      const res = await fetch('/api/availability/verify', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+        },
+        body: JSON.stringify({ items }),
+      });
+      const json = await res.json();
+      if (!res.ok) {
+        console.error('Availability verify failed', json);
+        setIsVerifying(false);
+        return;
+      }
+      const token = json.token as string;
+      router.push(`/checkout?availabilityToken=${encodeURIComponent(token)}`);
+    } catch (e) {
+      console.error('Availability verify error', e);
+    } finally {
       setIsVerifying(false);
-      router.push('/checkout');
-    }, 2000);
+    }
   };
 
   return (
-    <div className="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 min-h-screen">
+      <div className="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 min-h-screen">
       <nav className="sticky top-0 z-50 bg-white/80 dark:bg-background-dark/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16 items-center">
@@ -43,16 +70,16 @@ export default function BasketPage() {
             </Link>
             <div className="hidden md:flex items-center gap-8">
               <Link className="text-sm font-semibold hover:text-primary transition-colors text-slate-600 dark:text-slate-300" href="/">Home</Link>
-              <Link className="text-sm font-semibold hover:text-primary transition-colors text-slate-600 dark:text-slate-300" href={user ? "/profile/bookings" : "/auth/login"}>My Trips</Link>
+              <Link className="text-sm font-semibold hover:text-primary transition-colors text-slate-600 dark:text-slate-300" href={user ? "/profile/bookings" : loginFor('/profile/bookings')}>Bookings</Link>
               <Link className="text-sm font-semibold text-primary" href="/basket">Basket</Link>
             </div>
             <div className="flex items-center gap-4">
               <button className="p-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors">
                 <span className="material-symbols-outlined">notifications</span>
               </button>
-              <Link href={user ? "/profile" : "/auth/login"}>
+              <Link href={user ? "/profile" : loginFor('/profile')}>
                 <div className="h-8 w-8 rounded-full bg-primary/20 flex items-center justify-center overflow-hidden border border-primary/30">
-                  <Image width={32} height={32} alt="Profile" src={user?.photoURL || "https://picsum.photos/seed/user/200/200"} />
+                  <Image width={32} height={32} alt="Profile" src={(user?.user_metadata?.avatar_url as string | undefined) || "https://picsum.photos/seed/user/200/200"} />
                 </div>
               </Link>
             </div>
@@ -71,7 +98,46 @@ export default function BasketPage() {
           <p className="text-slate-600 dark:text-slate-400">Review your selections before checkout.</p>
         </div>
 
-        {items.length === 0 ? (
+        {!user && items.length > 0 && (
+          <div className="mb-6 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div>
+              <p className="font-bold">You’re browsing as a guest</p>
+              <p className="text-sm text-slate-500 dark:text-slate-400">
+                Sign in to verify availability and proceed to checkout. Your basket will be saved to your account and you can view your <Link href="/profile/bookings" className="text-primary hover:underline font-medium">Bookings</Link> anytime.
+              </p>
+            </div>
+            <Link href={loginFor('/basket')} className="bg-primary hover:bg-primary/90 px-6 py-3 rounded-xl text-white font-bold text-center">
+              Sign in to continue
+            </Link>
+          </div>
+        )}
+
+        {isLoading ? (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="lg:col-span-2 space-y-4">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6 animate-pulse">
+                  <div className="flex gap-4">
+                    <div className="w-48 h-32 bg-slate-200 dark:bg-slate-700 rounded-lg" />
+                    <div className="flex-1 space-y-3">
+                      <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded w-3/4" />
+                      <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded w-1/2" />
+                      <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded w-1/4" />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6 h-64 animate-pulse">
+              <div className="h-6 bg-slate-200 dark:bg-slate-700 rounded w-1/2 mb-4" />
+              <div className="space-y-3">
+                <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded" />
+                <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded" />
+                <div className="h-10 bg-slate-200 dark:bg-slate-700 rounded mt-6" />
+              </div>
+            </div>
+          </div>
+        ) : items.length === 0 ? (
           <div className="text-center py-20 bg-white dark:bg-slate-900 rounded-3xl border border-dashed border-slate-200 dark:border-slate-800">
             <span className="material-symbols-outlined text-6xl text-slate-300 mb-4">shopping_basket</span>
             <h3 className="text-xl font-bold">Your basket is empty</h3>
@@ -126,7 +192,7 @@ export default function BasketPage() {
                           <div className="flex flex-col items-end justify-between border-l border-slate-100 dark:border-slate-800 pl-6">
                             <div className="text-right">
                               <p className="text-xs text-slate-500 uppercase font-bold tracking-wider">Subtotal</p>
-                              <p className="text-2xl font-black text-primary">${flight.price.toFixed(2)}</p>
+                              <p className="text-2xl font-black text-primary">₦{flight.price.toLocaleString()}</p>
                             </div>
                             <button 
                               onClick={() => removeFromBasket(flight.basketId!)}
@@ -172,7 +238,7 @@ export default function BasketPage() {
                           <div className="flex flex-col items-end justify-between border-l border-slate-100 dark:border-slate-800 pl-6">
                             <div className="text-right">
                               <p className="text-xs text-slate-500 uppercase font-bold tracking-wider">Subtotal</p>
-                              <p className="text-2xl font-black text-primary">${hotel.price.toFixed(2)}</p>
+                              <p className="text-2xl font-black text-primary">₦{hotel.price.toLocaleString()}</p>
                             </div>
                             <button 
                               onClick={() => removeFromBasket(hotel.basketId!)}
@@ -213,7 +279,7 @@ export default function BasketPage() {
                           <div className="flex flex-col items-end justify-between border-l border-slate-100 dark:border-slate-800 pl-6">
                             <div className="text-right">
                               <p className="text-xs text-slate-500 uppercase font-bold tracking-wider">Subtotal</p>
-                              <p className="text-2xl font-black text-primary">${activity.price.toFixed(2)}</p>
+                              <p className="text-2xl font-black text-primary">₦{activity.price.toLocaleString()}</p>
                             </div>
                             <button 
                               onClick={() => removeFromBasket(activity.basketId!)}
@@ -242,15 +308,15 @@ export default function BasketPage() {
                 <div className="space-y-4 mb-6">
                   <div className="flex justify-between text-slate-600 dark:text-slate-400">
                     <span>Items ({items.length})</span>
-                    <span>${totalPrice.toFixed(2)}</span>
+                    <span>₦{totalPrice.toLocaleString()}</span>
                   </div>
                   <div className="flex justify-between text-slate-600 dark:text-slate-400 pb-4 border-b border-slate-100 dark:border-slate-800">
                     <span>Taxes & Fees</span>
-                    <span>${taxesAndFees.toFixed(2)}</span>
+                    <span>₦{taxesAndFees.toLocaleString()}</span>
                   </div>
                   <div className="flex justify-between items-center pt-2">
                     <span className="text-lg font-bold">Total</span>
-                    <span className="text-3xl font-black text-primary tracking-tight">${grandTotal.toFixed(2)}</span>
+                    <span className="text-3xl font-black text-primary tracking-tight">₦{grandTotal.toLocaleString()}</span>
                   </div>
                 </div>
                 <div className="space-y-3">

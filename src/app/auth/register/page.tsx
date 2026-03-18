@@ -2,19 +2,23 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 
 export default function RegisterPageRedirect() {
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   useEffect(() => {
     // Artificial delay to allow the user to see the beautiful redirect design
     const timer = setTimeout(() => {
-      router.replace('/auth/login?mode=register');
+      const next = searchParams.get('next');
+      const qs = next ? `&next=${encodeURIComponent(next)}` : '';
+      router.replace(`/auth/login?mode=register${qs}`);
     }, 2000);
     return () => clearTimeout(timer);
-  }, [router]);
+  }, [router, searchParams]);
 
   return (
     <div className="relative flex h-auto min-h-screen w-full flex-col overflow-x-hidden bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 transition-colors duration-300">
@@ -107,7 +111,7 @@ export default function RegisterPageRedirect() {
 
         {/* Footer */}
         <footer className="py-8 px-6 text-center">
-          <p className="text-slate-400 text-xs uppercase tracking-[0.2em] font-semibold">© 2026 TravelEase Global. All rights reserved.</p>
+          <p className="text-slate-400 text-xs uppercase tracking-[0.2em] font-semibold">© 2026 TravelEase. All rights reserved.</p>
         </footer>
       </div>
     </div>

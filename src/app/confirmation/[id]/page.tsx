@@ -4,20 +4,86 @@ import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useState, useEffect } from 'react';
+import { useAuth, useUser } from '@/supabase';
 
 export default function ConfirmationPage() {
   const params = useParams();
   const bookingId = params.id as string;
+  const auth = useAuth();
+  const { user } = useUser();
   const [purchase, setPurchase] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const saved = localStorage.getItem('travelease_last_purchase');
-    if (saved) {
-      setPurchase(JSON.parse(saved));
-    }
-  }, []);
+    const load = async () => {
+      if (!user) {
+        setLoading(false);
+        return;
+      }
+      const { data, error } = await auth.auth.getSession();
+      if (error) {
+        console.error('Failed to get Supabase session', error);
+        setLoading(false);
+        setError(error?.message || 'Failed to get session');
+        return;
+      }
+      const accessToken = data.session?.access_token;
+      if (!accessToken) {
+        setLoading(false);
+        setError('No access token found');
+        return;
+      }
+
+      const res = await fetch(`/api/bookings/by-reference?reference=${encodeURIComponent(bookingId)}`, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+      const json = await res.json();
+      if (!res.ok) {
+        console.error('Failed to fetch booking', json);
+        setLoading(false);
+        setError(json.error);
+        return;
+      }
+
+      setPurchase({
+        items: json.items?.map((it: any) => it.snapshot) || [],
+        total: json.booking?.total_amount,
+        date: json.booking?.booking_date ? new Date(json.booking.booking_date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : undefined,
+        booking: json.booking,
+      });
+      setLoading(false);
+    };
+
+    load();
+  }, [auth, bookingId, user]);
 
   const firstItem = purchase?.items?.[0];
+  const booking = purchase?.booking;
+  const userEmail = user?.email || 'user@travelease.com';
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background-light dark:bg-background-dark">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+          <p className="mt-4 text-slate-600 dark:text-slate-400">Loading booking details...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!purchase || !booking) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background-light dark:bg-background-dark">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold mb-4">Booking Not Found</h1>
+          <p className="text-slate-600 dark:text-slate-400 mb-8">We couldn't find a booking with reference #{bookingId}.</p>
+          <Link href="/profile/bookings" className="bg-primary text-white px-6 py-3 rounded-xl">View My Bookings</Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="relative flex min-h-screen flex-col overflow-x-hidden">

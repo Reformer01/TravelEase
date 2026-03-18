@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useSearchParams } from 'next/navigation';
@@ -7,7 +6,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useBasket, TravelService } from '@/context/basket-context';
 import { useToast } from '@/hooks/use-toast';
-import { useUser } from '@/firebase';
+import { useUser } from '@/supabase';
 import { Slider } from '@/components/ui/slider';
 import { Checkbox } from '@/components/ui/checkbox';
 
@@ -19,9 +18,12 @@ const getResults = (type: string | null): (TravelService & {
   subLocation: string;
 })[] => {
   const locations = [
-    { main: 'Santorini', sub: 'Oia, Santorini', country: 'Greece' },
-    { main: 'Kyoto', sub: 'Fira, Santorini', country: 'Japan' },
-    { main: 'Bali', sub: 'Imerovigli, Santorini', country: 'Indonesia' }
+    { main: 'Santorini', sub: 'Oia, Greece', country: 'Greece' },
+    { main: 'Kyoto', sub: 'Gion District, Japan', country: 'Japan' },
+    { main: 'Bali', sub: 'Ubud, Indonesia', country: 'Indonesia' },
+    { main: 'Paris', sub: 'Eiffel Tower Area, France', country: 'France' },
+    { main: 'New York', sub: 'Manhattan, USA', country: 'USA' },
+    { main: 'Dubai', sub: 'Downtown, UAE', country: 'UAE' }
   ];
   
   return Array.from({ length: 6 }).map((_, i) => ({
@@ -31,7 +33,7 @@ const getResults = (type: string | null): (TravelService & {
       ? (i % 2 === 0 ? 'Lufthansa Economy' : 'Qatar Airways Business')
       : (i % 2 === 0 ? 'Azure Luxury Suites' : i % 3 === 0 ? 'Mystique Boutique Resort' : 'Caldera View Hotel'),
     provider: 'TravelEase Preferred',
-    price: type === 'flight' ? (i * 100) + 300 : (i * 80) + 150,
+    price: type === 'flight' ? ((i * 100) + 300) * 1500 : ((i * 80) + 150) * 1500, // Convert USD to NGN (approximate rate)
     rating: i % 2 === 0 ? 5 : 4,
     image: type === 'flight' 
       ? `https://picsum.photos/seed/flight-${i}/800/600`
@@ -53,7 +55,9 @@ export default function SearchPage() {
   const { toast } = useToast();
   const { user } = useUser();
 
-  const [priceRange, setPriceRange] = useState([850]);
+  const loginFor = (path: string) => `/auth/login?next=${encodeURIComponent(path)}`;
+
+  const [priceRange, setPriceRange] = useState([1275000]); // Convert $850 to NGN
   const [selectedRatings, setSelectedRatings] = useState<number[]>([5, 4]);
 
   const allResults = useMemo(() => getResults(type), [type]);
@@ -102,14 +106,14 @@ export default function SearchPage() {
             <nav className="hidden lg:flex items-center gap-8">
               <Link className={`text-sm font-semibold transition-colors ${type === 'hotel' ? 'text-primary' : 'hover:text-primary text-slate-600 dark:text-slate-300'}`} href="/search?type=hotel">Hotels</Link>
               <Link className={`text-sm font-semibold transition-colors ${type === 'flight' ? 'text-primary' : 'hover:text-primary text-slate-600 dark:text-slate-300'}`} href="/search?type=flight">Flights</Link>
-              <Link className="text-sm font-semibold text-slate-600 dark:text-slate-300 hover:text-primary transition-colors" href={user ? "/profile/bookings" : "/auth/login"}>My Bookings</Link>
+              <Link className="text-sm font-semibold text-slate-600 dark:text-slate-300 hover:text-primary transition-colors" href={user ? "/profile/bookings" : loginFor('/profile/bookings')}>My Bookings</Link>
               <Link className="text-sm font-semibold text-slate-600 dark:text-slate-300 hover:text-primary transition-colors" href="/support">Support</Link>
             </nav>
             <div className="flex gap-3">
               <Link href="/basket" className="relative flex items-center justify-center rounded-xl size-10 bg-slate-200/50 dark:bg-primary/10 hover:bg-primary/20 transition-colors">
                 <span className="material-symbols-outlined text-slate-700 dark:text-slate-200">shopping_basket</span>
               </Link>
-              <Link href={user ? "/profile" : "/auth/login"}>
+              <Link href={user ? "/profile" : loginFor('/profile')}>
                 <button className="flex items-center justify-center rounded-xl size-10 bg-slate-200/50 dark:bg-primary/10 hover:bg-primary/20 transition-colors">
                   <span className="material-symbols-outlined text-slate-700 dark:text-slate-200">account_circle</span>
                 </button>
@@ -128,12 +132,12 @@ export default function SearchPage() {
             </div>
             <div className="space-y-6">
               <div className="space-y-4">
-                <h4 className="text-sm font-bold uppercase tracking-wider text-slate-500">Max Price: ${priceRange[0]}</h4>
+                <h4 className="text-sm font-bold uppercase tracking-wider text-slate-500">Max Price: ₦{priceRange[0].toLocaleString()}</h4>
                 <div className="relative pt-2">
                   <Slider 
-                    defaultValue={[850]} 
-                    max={1000} 
-                    step={10} 
+                    defaultValue={[1275000]} 
+                    max={1500000} 
+                    step={15000} 
                     value={priceRange} 
                     onValueChange={setPriceRange} 
                   />
@@ -238,7 +242,7 @@ export default function SearchPage() {
                           </p>
                         )}
                         <div className="flex items-baseline gap-1 mt-1">
-                          <span className="text-2xl font-black text-slate-900 dark:text-white">${service.price}</span>
+                          <span className="text-2xl font-black text-slate-900 dark:text-white">₦{service.price.toLocaleString()}</span>
                           <span className="text-xs text-slate-500">/ {type === 'flight' ? 'person' : 'night'}</span>
                         </div>
                       </div>

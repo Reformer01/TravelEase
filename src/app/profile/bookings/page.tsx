@@ -1,33 +1,65 @@
 
 "use client";
 
-import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
+import { useAuth, useUser } from '@/supabase';
 import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { collection, query, orderBy } from 'firebase/firestore';
+import { RequireAuth } from '@/components/require-auth';
 
 export default function MyBookingsPage() {
   const { user, isUserLoading } = useUser();
-  const db = useFirestore();
+  const auth = useAuth();
   const router = useRouter();
+  const [bookings, setBookings] = useState<any[] | null>(null);
+  const [isBookingsLoading, setIsBookingsLoading] = useState(false);
+
+  const safeReadJson = async (response: Response) => {
+    const text = await response.text();
+    if (!text) return null;
+    try {
+      return JSON.parse(text);
+    } catch {
+      return { raw: text };
+    }
+  };
 
   useEffect(() => {
-    if (!isUserLoading && !user) {
-      router.push('/auth/login');
-    }
-  }, [user, isUserLoading, router]);
+    const load = async () => {
+      if (!user) return;
+      setIsBookingsLoading(true);
+      try {
+        const { data, error } = await auth.auth.getSession();
+        if (error) throw error;
+        const accessToken = data.session?.access_token;
+        if (!accessToken) return;
 
-  const bookingsQuery = useMemoFirebase(() => {
-    if (!db || !user) return null;
-    return query(
-      collection(db, 'users', user.uid, 'bookings'),
-      orderBy('createdAt', 'desc')
-    );
-  }, [db, user]);
+        const res = await fetch('/api/bookings/list', {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        });
+        const json = await safeReadJson(res);
 
-  const { data: bookings, isLoading: isBookingsLoading } = useCollection(bookingsQuery);
+        if (res.status === 401) {
+          router.push('/auth/login');
+          return;
+        }
+
+        if (!res.ok) {
+          console.error('Failed to load bookings', { status: res.status, body: json });
+          return;
+        }
+
+        setBookings((json as any)?.bookings || []);
+      } catch (e) {
+        console.error('Bookings load error', e);
+      } finally {
+        setIsBookingsLoading(false);
+      }
+    };
+
+    load();
+  }, [auth, user]);
 
   if (isUserLoading || isBookingsLoading) {
     return (
@@ -40,7 +72,8 @@ export default function MyBookingsPage() {
   if (!user) return null;
 
   return (
-    <div className="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 min-h-screen font-display">
+    <RequireAuth>
+      <div className="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 min-h-screen font-display">
       <header className="sticky top-0 z-50 w-full border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-background-dark px-6 md:px-20 py-4">
         <div className="flex items-center justify-between max-w-7xl mx-auto">
           <Link href="/" className="flex items-center gap-2 text-primary">
@@ -81,7 +114,7 @@ export default function MyBookingsPage() {
             bookings.map((booking) => (
               <Link 
                 key={booking.id} 
-                href={`/profile/bookings/${booking.id}`}
+                href={`/profile/bookings/${booking.booking_reference || booking.id}`}
                 className="block bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm hover:shadow-md hover:border-primary/30 transition-all group"
               >
                 <div className="flex flex-col md:flex-row">
@@ -97,7 +130,7 @@ export default function MyBookingsPage() {
                     <div className="flex justify-between items-start mb-4">
                       <div>
                         <div className="flex items-center gap-2 mb-1">
-                          <span className="text-xs font-bold uppercase tracking-widest text-primary">Booking #{booking.id}</span>
+                          <span className="text-xs font-bold uppercase tracking-widest text-primary">Booking #{booking.booking_reference || booking.id}</span>
                           <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
                             booking.status === 'confirmed' 
                               ? 'bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400' 
@@ -109,20 +142,26 @@ export default function MyBookingsPage() {
                         <h4 className="text-2xl font-bold text-slate-900 dark:text-white">{booking.location}</h4>
                         <p className="text-slate-500 dark:text-slate-400 flex items-center gap-1 mt-1">
                           <span className="material-symbols-outlined text-sm text-primary">calendar_today</span>
-                          {booking.bookingDate ? new Date(booking.bookingDate).toLocaleDateString() : 'Date TBD'}
+                          {booking.booking_date ? new Date(booking.booking_date).toLocaleDateString() : 'Date TBD'}
                         </p>
                       </div>
                       <div className="text-right">
                         <p className="text-sm text-slate-400">Total Price</p>
-                        <p className="text-xl font-black text-slate-900 dark:text-white">${booking.totalAmount?.toFixed(2) || '0.00'}</p>
+                        <p className="text-xl font-black text-slate-900 dark:text-white">₦{Number(booking.total_amount || 0).toLocaleString()}</p>
                       </div>
                     </div>
                     <div className="flex items-center justify-between mt-4 pt-4 border-t border-slate-100 dark:border-slate-800">
                       <p className="text-sm text-slate-500 font-medium truncate max-w-[200px]">{booking.title}</p>
-                      <div className="flex items-center text-primary font-bold text-sm gap-1 group-hover:translate-x-1 transition-transform">
+                      <button 
+                        onClick={(e) => {
+                          e.preventDefault();
+                          router.push(`/profile/bookings/${booking.booking_reference || booking.id}`);
+                        }}
+                        className="flex items-center text-primary font-bold text-sm gap-1 hover:translate-x-1 transition-transform bg-primary/10 px-3 py-1.5 rounded-lg hover:bg-primary/20"
+                      >
                         View Details
                         <span className="material-symbols-outlined text-sm">arrow_forward</span>
-                      </div>
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -132,5 +171,6 @@ export default function MyBookingsPage() {
         </div>
       </main>
     </div>
+    </RequireAuth>
   );
 }

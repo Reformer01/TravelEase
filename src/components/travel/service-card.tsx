@@ -51,13 +51,13 @@ export function ServiceCard({ service }: ServiceCardProps) {
       <CardContent className="p-6">
         <h3 className="text-xl font-bold mb-2 text-slate-900 dark:text-slate-100">{service.title}</h3>
         <p className="text-slate-500 dark:text-slate-400 text-sm mb-4 line-clamp-2">
-          {service.type === 'hotel' ? `Starting at $${service.price}/night. Tropical paradise awaits with luxury amenities.` : `Fly to your next adventure with ${service.provider}.`}
+          {service.type === 'hotel' ? `Starting at ₦${service.price.toLocaleString()}/night. Tropical paradise awaits with luxury amenities.` : `Fly to your next adventure with ${service.provider}.`}
         </p>
         
         <div className="flex items-center justify-between">
           <div className="flex flex-col">
             <span className="text-primary font-black text-xl">
-              ${service.price} 
+              ₦{service.price.toLocaleString()} 
               <span className="text-slate-400 text-xs font-normal">/{service.type === 'hotel' ? 'night' : 'person'}</span>
             </span>
           </div>

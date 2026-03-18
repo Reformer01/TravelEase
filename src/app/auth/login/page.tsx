@@ -3,9 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { useAuth, useUser } from '@/firebase';
-import { initiateEmailSignIn, initiateEmailSignUp } from '@/firebase/non-blocking-login';
-import { GoogleAuthProvider, signInWithRedirect, FacebookAuthProvider } from 'firebase/auth';
+import { useAuth, useUser } from '@/supabase';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -27,36 +25,81 @@ export default function AuthPage() {
   // Automatically redirect when the user state becomes available
   useEffect(() => {
     if (user) {
-      router.push('/');
+      const next = searchParams.get('next');
+      router.push(next || '/profile');
     }
-  }, [user, router]);
+  }, [user, router, searchParams]);
 
   useEffect(() => {
     const mode = searchParams.get('mode');
     if (mode === 'register') setView('register');
   }, [searchParams]);
 
-  const handleEmailAuth = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleEmailAuth = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (loading) return;
     setLoading(true);
     const formData = new FormData(e.currentTarget);
     const email = formData.get('email') as string;
     const password = formData.get('password') as string;
+    const fname = (formData.get('fname') as string | null) || '';
+    const lname = (formData.get('lname') as string | null) || '';
+    const fullName = `${fname} ${lname}`.trim();
 
     try {
       if (view === 'login') {
-        initiateEmailSignIn(auth, email, password);
+        const { data, error } = await auth.auth.signInWithPassword({ email, password });
+        if (error) throw error;
       } else {
-        initiateEmailSignUp(auth, email, password);
+        const { data, error } = await auth.auth.signUp({
+          email,
+          password,
+          options: {
+            data: {
+              first_name: fname,
+              last_name: lname,
+              full_name: fullName,
+            },
+          },
+        });
+        if (error) throw error;
+
+        // If we got a session immediately (no email-confirm required), seed the `profiles` row.
+        const accessToken = data.session?.access_token;
+        if (accessToken) {
+          try {
+            await fetch('/api/profile/me', {
+              method: 'PUT',
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${accessToken}`,
+              },
+              body: JSON.stringify({
+                firstName: fname,
+                lastName: lname,
+                email,
+              }),
+            });
+          } catch (e) {
+            // Best-effort only; profile page can still upsert later.
+            console.error('Profile seed failed', e);
+          }
+        } else {
+          // Common when email confirmation is enabled.
+          toast({
+            title: 'Check your email',
+            description: 'Confirm your email to finish creating your account, then sign in.',
+          });
+        }
       }
-    } catch (error) {
+      setLoading(false);
+    } catch (error: any) {
       console.error("Auth initialization error:", error);
       setLoading(false);
       toast({
         variant: "destructive",
         title: "Authentication Error",
-        description: "There was a problem starting the authentication process."
+        description: error.message || "There was a problem starting the authentication process."
       });
     }
   };
@@ -65,29 +108,17 @@ export default function AuthPage() {
     if (socialLoading) return;
     setSocialLoading(true);
     try {
-      const provider = providerName === 'google' 
-        ? new GoogleAuthProvider() 
-        : new FacebookAuthProvider();
-      
-      // Using redirect instead of popup to avoid popup-blocked errors in dev environments.
-      await signInWithRedirect(auth, provider);
+      const { data, error } = await auth.auth.signInWithOAuth({ provider: providerName });
+      if (error) throw error;
+      setSocialLoading(false);
     } catch (error: any) {
       console.error(`${providerName} login failed`, error);
       setSocialLoading(false);
-      
-      if (error.code === 'auth/unauthorized-domain') {
-        toast({
-          variant: "destructive",
-          title: "Domain Not Authorized",
-          description: "This domain is not authorized in your Firebase project. Please add it in the Firebase Console under Authentication > Settings > Authorized domains."
-        });
-      } else if (error.code !== 'auth/cancelled-popup-request') {
-        toast({
-          variant: "destructive",
-          title: "Login Failed",
-          description: error.message || "Failed to initialize social login."
-        });
-      }
+      toast({
+        variant: "destructive",
+        title: "Login Failed",
+        description: error.message || "Failed to initialize social login."
+      });
     }
   };
 
@@ -284,6 +315,17 @@ export default function AuthPage() {
 
             <div className="mt-8 text-center text-sm text-slate-500 dark:text-slate-400">
               <p>By {view === 'login' ? 'signing in' : 'registering'}, you agree to TravelEase's <Link className="underline hover:text-primary" href="#">Terms of Service</Link> and <Link className="underline hover:text-primary" href="#">Privacy Policy</Link>.</p>
+            </div>
+            <div className="mt-4 text-center text-sm text-slate-500 dark:text-slate-400">
+              {view === 'login' ? (
+                <p>
+                  New here? <Link href="/auth/register" className="font-semibold text-primary hover:underline">Create account</Link>
+                </p>
+              ) : (
+                <p>
+                  Already have an account? <button type="button" onClick={() => setView('login')} className="font-semibold text-primary hover:underline">Sign in</button>
+                </p>
+              )}
             </div>
           </div>
         </div>

@@ -5,11 +5,13 @@ import { ShoppingBasket, User, Menu } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useBasket } from '@/context/basket-context';
 import { Badge } from '@/components/ui/badge';
-import { useUser } from '@/firebase';
+import { useUser } from '@/supabase';
 
 export function Navbar() {
   const { items } = useBasket();
   const { user } = useUser();
+
+  const loginFor = (path: string) => `/auth/login?next=${encodeURIComponent(path)}`;
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-background-dark/80 backdrop-blur-md">
@@ -25,7 +27,7 @@ export function Navbar() {
 
         <nav className="hidden md:flex items-center gap-8">
           <Link href="/search?type=flight" className="text-sm font-semibold hover:text-primary transition-colors text-slate-600 dark:text-slate-300">Discover</Link>
-          <Link href={user ? "/profile/bookings" : "/auth/login"} className="text-sm font-semibold hover:text-primary transition-colors text-slate-600 dark:text-slate-300">Trips</Link>
+          <Link href={user ? "/profile/bookings" : loginFor('/profile/bookings')} className="text-sm font-semibold hover:text-primary transition-colors text-slate-600 dark:text-slate-300">My Trips</Link>
           <Link href="/support" className="text-sm font-semibold hover:text-primary transition-colors text-slate-600 dark:text-slate-300">Support</Link>
         </nav>
 
@@ -40,10 +42,10 @@ export function Navbar() {
               )}
             </Button>
           </Link>
-          <Link href={user ? "/profile" : "/auth/login"}>
+          <Link href={user ? "/profile" : loginFor('/profile')}>
             <Button variant="secondary" size="icon" className="rounded-xl h-10 w-10 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-primary/20 transition-all">
-              {user?.photoURL ? (
-                <img src={user.photoURL} className="h-full w-full object-cover rounded-xl" alt="Profile" />
+              {(user?.user_metadata?.avatar_url as string | undefined) ? (
+                <img src={user?.user_metadata?.avatar_url || "https://picsum.photos/seed/user/64/64"} className="h-full w-full object-cover rounded-xl" alt="Profile" />
               ) : (
                 <User className="h-5 w-5" />
               )}

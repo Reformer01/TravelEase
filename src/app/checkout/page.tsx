@@ -7,90 +7,94 @@ import { useBasket } from '@/context/basket-context';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
 import Image from 'next/image';
-import { useUser, useFirestore } from '@/firebase';
-import { doc, setDoc, collection, serverTimestamp } from 'firebase/firestore';
-import { errorEmitter } from '@/firebase/error-emitter';
-import { FirestorePermissionError } from '@/firebase/errors';
+import { useAuth, useUser } from '@/supabase';
+import { RequireAuth } from '@/components/require-auth';
 
 export default function CheckoutPage() {
   const router = useRouter();
   const { totalPrice, items, clearBasket } = useBasket();
   const { toast } = useToast();
   const { user } = useUser();
-  const db = useFirestore();
+  const auth = useAuth();
   const [loading, setLoading] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<'card' | 'bank' | 'ussd'>('card');
+
+  const loginFor = (path: string) => `/auth/login?next=${encodeURIComponent(path)}`;
 
   const taxesAndFees = Math.floor(totalPrice * 0.1);
   const serviceFee = Math.floor(totalPrice * 0.02);
   const grandTotal = totalPrice + taxesAndFees + serviceFee;
 
+  const getAccessToken = async (): Promise<string | null> => {
+    const { data, error } = await auth.auth.getSession();
+    if (error) {
+      console.error('Failed to get Supabase session', error);
+      return null;
+    }
+    return data.session?.access_token ?? null;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user || !db) {
+    if (!user) {
       toast({ variant: "destructive", title: "Error", description: "You must be logged in to book." });
       return;
     }
 
     setLoading(true);
 
-    const bookingId = `BK-${Math.random().toString(36).substring(2, 9).toUpperCase()}`;
-    const bookingRef = doc(db, 'users', user.uid, 'bookings', bookingId);
-
-    const bookingData = {
-      id: bookingId,
-      userId: user.uid,
-      bookingReference: bookingId,
-      totalAmount: grandTotal,
-      currency: 'USD',
-      status: 'confirmed',
-      bookingDate: new Date().toISOString(),
-      paymentId: `PAY-${Math.random().toString(36).substring(2, 9).toUpperCase()}`,
-      createdAt: serverTimestamp(),
-      location: items[0]?.location || 'Global',
-      title: items[0]?.title || 'Travel Package',
-      image: items[0]?.image || ''
-    };
-
-    // Save to Firestore
-    setDoc(bookingRef, bookingData)
-      .then(() => {
-        // Also save items to subcollection for full normalization
-        items.forEach((item, index) => {
-          const itemRef = doc(db, 'users', user.uid, 'bookings', bookingId, 'booking_items', `item-${index}`);
-          setDoc(itemRef, {
-            ...item,
-            bookingId,
-            userId: user.uid,
-            quantity: 1,
-            priceAtTimeOfBooking: item.price,
-            itemStatus: 'confirmed',
-            startDate: new Date().toISOString()
-          });
-        });
-
-        localStorage.setItem('travelease_last_purchase', JSON.stringify({
-          items,
-          total: grandTotal,
-          date: new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
-        }));
-
-        clearBasket();
-        toast({
-          title: "Payment Successful",
-          description: `Your booking ${bookingId} has been confirmed.`,
-        });
-        router.push(`/confirmation/${bookingId}`);
-      })
-      .catch((error) => {
-        const permissionError = new FirestorePermissionError({
-          path: bookingRef.path,
-          operation: 'create',
-          requestResourceData: bookingData,
-        });
-        errorEmitter.emit('permission-error', permissionError);
+    try {
+      const accessToken = await getAccessToken();
+      if (!accessToken) {
+        toast({ variant: "destructive", title: "Error", description: "Missing session." });
         setLoading(false);
+        return;
+      }
+
+      const url = new URL(window.location.href);
+      const availabilityToken = url.searchParams.get('availabilityToken');
+      if (!availabilityToken) {
+        toast({ variant: "destructive", title: "Error", description: "Missing availability verification. Please return to basket and verify." });
+        setLoading(false);
+        return;
+      }
+
+      const initRes = await fetch('/api/payments/paystack/initialize', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify({
+          amount: grandTotal,
+          currency: 'NGN',
+          items,
+          availabilityToken,
+          paymentMethod,
+        }),
       });
+
+      const initJson = await initRes.json();
+      if (!initRes.ok) {
+        toast({ variant: "destructive", title: "Payment Error", description: initJson?.error || 'Unable to start payment.' });
+        setLoading(false);
+        return;
+      }
+
+      const authorizationUrl = initJson.authorizationUrl as string | undefined;
+      if (!authorizationUrl) {
+        toast({ variant: "destructive", title: "Payment Error", description: 'Missing Paystack authorization URL.' });
+        setLoading(false);
+        return;
+      }
+
+      // Redirect to Paystack hosted checkout. Paystack will redirect back to /checkout/complete.
+      window.location.href = authorizationUrl;
+    } catch (err) {
+      console.error('Checkout submit error', err);
+      toast({ variant: "destructive", title: "Error", description: "Checkout failed." });
+      setLoading(false);
+    }
   };
 
   if (items.length === 0) {
@@ -107,7 +111,8 @@ export default function CheckoutPage() {
   }
 
   return (
-    <div className="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 antialiased font-display min-h-screen">
+    <RequireAuth>
+      <div className="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 antialiased font-display min-h-screen">
       <header className="sticky top-0 z-50 w-full border-b border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-background-dark/80 backdrop-blur-md">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 items-center justify-between">
@@ -120,10 +125,10 @@ export default function CheckoutPage() {
             <div className="flex flex-1 justify-end gap-6 items-center">
               <nav className="hidden md:flex items-center gap-8">
                 <Link className="text-slate-600 dark:text-slate-300 text-sm font-medium hover:text-primary transition-colors" href="/">Home</Link>
-                <Link className="text-slate-600 dark:text-slate-300 text-sm font-medium hover:text-primary transition-colors" href={user ? "/profile/bookings" : "/auth/login"}>Bookings</Link>
+                <Link className="text-slate-600 dark:text-slate-300 text-sm font-medium hover:text-primary transition-colors" href={user ? "/profile/bookings" : loginFor('/profile/bookings')}>My Trips</Link>
                 <Link className="text-slate-600 dark:text-slate-300 text-sm font-medium hover:text-primary transition-colors" href="/support">Support</Link>
               </nav>
-              <Link href={user ? "/profile" : "/auth/login"}>
+              <Link href={user ? "/profile" : loginFor('/profile')}>
                 <button className="flex items-center justify-center rounded-full size-10 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
                   <span className="material-symbols-outlined text-[20px]">person</span>
                 </button>
@@ -159,17 +164,17 @@ export default function CheckoutPage() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="flex flex-col gap-1.5">
                       <label className="text-sm font-medium text-slate-700 dark:text-slate-300">First Name</label>
-                      <input required className="rounded-lg border-slate-300 dark:border-slate-700 bg-transparent focus:border-primary focus:ring-primary h-10 px-3 text-sm" placeholder="John" type="text" defaultValue={user?.displayName?.split(' ')[0] || ''} />
+                      <input required className="rounded-lg border-slate-300 dark:border-slate-700 bg-transparent focus:border-primary focus:ring-primary h-10 px-3 text-sm" placeholder="John" type="text" defaultValue={(user?.user_metadata?.full_name as string | undefined)?.split(' ')[0] || ''} />
                     </div>
                     <div className="flex flex-col gap-1.5">
                       <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Last Name</label>
-                      <input required className="rounded-lg border-slate-300 dark:border-slate-700 bg-transparent focus:border-primary focus:ring-primary h-10 px-3 text-sm" placeholder="Doe" type="text" defaultValue={user?.displayName?.split(' ')[1] || ''} />
+                      <input required className="rounded-lg border-slate-300 dark:border-slate-700 bg-transparent focus:border-primary focus:ring-primary h-10 px-3 text-sm" placeholder="Doe" type="text" defaultValue={((user?.user_metadata?.full_name as string | undefined)?.split(' ')[1]) || ''} />
                     </div>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="flex flex-col gap-1.5">
                       <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Email Address</label>
-                      <input required className="rounded-lg border-slate-300 dark:border-slate-700 bg-transparent focus:border-primary focus:ring-primary h-10 px-3 text-sm" placeholder="john@example.com" type="email" defaultValue={user?.email || ''} />
+                      <input required className="rounded-lg border-slate-300 dark:border-slate-700 bg-transparent focus:border-primary focus:ring-primary h-10 px-3 text-sm" placeholder="user@travelease.com" type="email" defaultValue={user?.email || ''} />
                     </div>
                     <div className="flex flex-col gap-1.5">
                       <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Phone Number</label>
@@ -207,33 +212,27 @@ export default function CheckoutPage() {
                       </button>
                     </div>
                     <div className="flex-1 space-y-4 pt-2 md:pt-0">
-                      <div className="flex flex-col gap-1.5">
-                        <label className="text-xs font-bold uppercase tracking-wider text-slate-500">Card Number</label>
-                        <div className="relative">
-                          <input required className="w-full rounded-lg border-slate-300 dark:border-slate-700 bg-transparent pr-12 focus:border-primary focus:ring-primary h-10 px-3 text-sm" placeholder="0000 0000 0000 0000" type="text" />
-                          <div className="absolute right-3 top-1/2 -translate-y-1/2 flex gap-1">
-                            <span className="material-symbols-outlined text-slate-400">credit_card</span>
-                          </div>
+                      <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30 p-4">
+                        <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">Secure Payment</p>
+                        <div className="flex items-center gap-2">
+                          <span className="material-symbols-outlined text-slate-400">lock</span>
+                          <span className="text-xs text-slate-500">SSL encrypted • Powered by Paystack</span>
                         </div>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                          You will be redirected to Paystack to complete payment. Do not enter your card or bank details on this page.
+                        </p>
+                        <p className="text-xs text-slate-500 dark:text-slate-400">
+                          By proceeding, you agree to our <Link href="/support/cancellation" className="text-primary hover:underline">cancellation policy</Link> and <Link href="/support/terms" className="text-primary hover:underline">terms of service</Link>.
+                        </p>
                       </div>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="flex flex-col gap-1.5">
-                          <label className="text-xs font-bold uppercase tracking-wider text-slate-500">Expiry Date</label>
-                          <input required className="rounded-lg border-slate-300 dark:border-slate-700 bg-transparent focus:border-primary focus:ring-primary h-10 px-3 text-sm" placeholder="MM / YY" type="text" />
-                        </div>
-                        <div className="flex flex-col gap-1.5">
-                          <label className="text-xs font-bold uppercase tracking-wider text-slate-500">CVV</label>
-                          <input required className="rounded-lg border-slate-300 dark:border-slate-700 bg-transparent focus:border-primary focus:ring-primary h-10 px-3 text-sm" placeholder="***" type="password" />
-                        </div>
-                      </div>
-                      <div className="pt-4">
+                      <div className="pt-2">
                         <button type="submit" disabled={loading} className="w-full bg-primary hover:bg-primary/90 text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg shadow-primary/20">
-                          {loading ? 'Processing...' : `Pay $${grandTotal.toFixed(2)}`}
-                          {!loading && <span className="material-symbols-outlined">lock</span>}
+                          {loading ? 'Redirecting...' : `Continue to Paystack (₦${grandTotal.toLocaleString()})`}
+                          {!loading && <span className="material-symbols-outlined">open_in_new</span>}
                         </button>
                         <p className="text-center text-xs text-slate-400 mt-4 flex items-center justify-center gap-1">
                           <span className="material-symbols-outlined text-[14px]">verified_user</span>
-                          Your payment information is encrypted and secure.
+                          Secure payment powered by Paystack.
                         </p>
                       </div>
                     </div>
@@ -260,26 +259,26 @@ export default function CheckoutPage() {
                           <p className="font-semibold text-xs truncate">{item.title}</p>
                           <p className="text-[10px] text-slate-500 uppercase tracking-wider">{item.type} • {item.provider}</p>
                         </div>
-                        <p className="font-bold text-sm text-primary">${item.price.toFixed(2)}</p>
+                        <p className="font-bold text-sm text-primary">₦{item.price.toLocaleString()}</p>
                       </div>
                     ))}
                   </div>
                   <div className="space-y-3">
                     <div className="flex justify-between text-sm">
                       <span className="text-slate-500">Base Fare ({items.length} items)</span>
-                      <span className="font-medium">${totalPrice.toFixed(2)}</span>
+                      <span className="font-medium">₦{totalPrice.toLocaleString()}</span>
                     </div>
                     <div className="flex justify-between text-sm">
                       <span className="text-slate-500">Taxes & Fees</span>
-                      <span className="font-medium">${taxesAndFees.toFixed(2)}</span>
+                      <span className="font-medium">₦{taxesAndFees.toLocaleString()}</span>
                     </div>
                     <div className="flex justify-between text-sm">
                       <span className="text-slate-500">Service Fee</span>
-                      <span className="font-medium">${serviceFee.toFixed(2)}</span>
+                      <span className="font-medium">₦{serviceFee.toLocaleString()}</span>
                     </div>
                     <div className="pt-3 border-t border-dashed border-slate-200 dark:border-slate-700 flex justify-between items-center">
                       <span className="font-bold">Total Amount</span>
-                      <span className="font-black text-2xl text-primary">${grandTotal.toFixed(2)}</span>
+                      <span className="font-black text-2xl text-primary">₦{grandTotal.toLocaleString()}</span>
                     </div>
                   </div>
                 </div>
@@ -289,5 +288,6 @@ export default function CheckoutPage() {
         </div>
       </main>
     </div>
+    </RequireAuth>
   );
 }

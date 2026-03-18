@@ -1,10 +1,12 @@
 "use client";
 
 import Link from 'next/link';
-import { useUser } from '@/firebase';
+import { useUser } from '@/supabase';
 
 export default function SupportPage() {
   const { user } = useUser();
+
+  const loginFor = (path: string) => `/auth/login?next=${encodeURIComponent(path)}`;
 
   const faqs = [
     { q: "How do I cancel my booking?", a: "You can cancel your booking directly from your 'My Bookings' page. Most bookings offer free cancellation up to 24 hours before check-in." },
@@ -23,10 +25,10 @@ export default function SupportPage() {
         </Link>
         <nav className="hidden md:flex items-center gap-8">
           <Link className="text-sm font-semibold hover:text-primary transition-colors text-slate-600 dark:text-slate-300" href="/search">Search</Link>
-          <Link className="text-sm font-semibold hover:text-primary transition-colors text-slate-600 dark:text-slate-300" href={user ? "/profile/bookings" : "/auth/login"}>My Bookings</Link>
+          <Link className="text-sm font-semibold hover:text-primary transition-colors text-slate-600 dark:text-slate-300" href={user ? "/profile/bookings" : loginFor('/profile/bookings')}>My Bookings</Link>
           <Link className="text-sm font-semibold text-primary" href="/support">Help Center</Link>
         </nav>
-        <Link href={user ? "/profile" : "/auth/login"}>
+        <Link href={user ? "/profile" : loginFor('/profile')}>
           <button className="flex items-center justify-center rounded-xl h-10 w-10 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-primary/20 transition-colors">
             <span className="material-symbols-outlined text-[20px]">person</span>
           </button>
@@ -96,7 +98,7 @@ export default function SupportPage() {
       </main>
 
       <footer className="py-12 text-center text-slate-400 text-sm">
-        © 2026 TravelEase Global Support. All rights reserved.
+        © 2026 TravelEase. All rights reserved.
       </footer>
     </div>
   );
