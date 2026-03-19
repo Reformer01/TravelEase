@@ -32,7 +32,21 @@ export function SupabaseClientProvider({ children }: { children: ReactNode }) {
     const initSession = async () => {
       try {
         const { data, error } = await supabase.auth.getSession();
-        if (error) throw error;
+        if (error) {
+          const msg = typeof (error as any)?.message === 'string' ? (error as any).message : '';
+          if (msg.toLowerCase().includes('invalid refresh token')) {
+            try {
+              await supabase.auth.signOut();
+            } catch {
+              // ignore
+            }
+            if (!isMounted) return;
+            setUserAuthState({ user: null, isUserLoading: false, userError: null });
+            return;
+          }
+
+          throw error;
+        }
         if (!isMounted) return;
         setUserAuthState({ user: data.session?.user ?? null, isUserLoading: false, userError: null });
       } catch (err) {
