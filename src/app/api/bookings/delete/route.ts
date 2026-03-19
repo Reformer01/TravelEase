@@ -86,6 +86,7 @@ export async function POST(request: NextRequest) {
           }
         }
 
+        // Hard delete fallback when status update didn't persist
         const { error: hardDelErr } = await supabase
           .from('bookings')
           .delete()
