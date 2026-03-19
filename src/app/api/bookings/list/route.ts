@@ -36,7 +36,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: listErr.message }, { status: 500 });
     }
 
-    const { data: data2, error: listErr2 } = await buildBaseQuery();
+    const { data: data2, error: listErr2 } = await buildBaseQuery().neq('status', 'deleted');
     if (listErr2) {
       return NextResponse.json({ error: listErr2.message }, { status: 500 });
     }

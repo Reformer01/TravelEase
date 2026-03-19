@@ -55,6 +55,18 @@ export async function POST(request: NextRequest) {
 
     if (updateErr) {
       if (isMissingDeletedAtColumn(updateErr)) {
+        const { data: statusUpdated, error: statusUpdateErr } = await supabase
+          .from('bookings')
+          .update({ status: 'deleted' })
+          .eq('id', booking.id)
+          .eq('user_id', user.id)
+          .select('*')
+          .maybeSingle();
+
+        if (!statusUpdateErr) {
+          return NextResponse.json({ ok: true, deletedWith: 'user_status', booking: statusUpdated });
+        }
+
         const { error: hardDelErr } = await supabase
           .from('bookings')
           .delete()
