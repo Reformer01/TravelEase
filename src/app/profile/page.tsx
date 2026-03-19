@@ -241,31 +241,6 @@ export default function ProfilePage() {
           </aside>
 
           <div className="flex-1 space-y-8">
-            {/* Quick Stats */}
-            <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="bg-white dark:bg-slate-900 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800">
-                <div className="flex items-center justify-between mb-2">
-                  <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Total Trips</p>
-                  <span className="material-symbols-outlined text-primary">flight_takeoff</span>
-                </div>
-                <p className="text-3xl font-bold">24</p>
-              </div>
-              <div className="bg-white dark:bg-slate-900 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800">
-                <div className="flex items-center justify-between mb-2">
-                  <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Loyalty Points</p>
-                  <span className="material-symbols-outlined text-primary">stars</span>
-                </div>
-                <p className="text-3xl font-bold">4,250</p>
-              </div>
-              <div className="bg-white dark:bg-slate-900 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800">
-                <div className="flex items-center justify-between mb-2">
-                  <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Visited</p>
-                  <span className="material-symbols-outlined text-primary">public</span>
-                </div>
-                <p className="text-3xl font-bold">12 <span className="text-sm font-normal text-slate-400">Countries</span></p>
-              </div>
-            </section>
-
             {/* Personal Information */}
             <section className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden">
               <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
