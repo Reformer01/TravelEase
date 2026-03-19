@@ -15,7 +15,7 @@ export default function MyBookingsPage() {
   const [bookings, setBookings] = useState<any[] | null>(null);
   const [isBookingsLoading, setIsBookingsLoading] = useState(false);
 
-  const safeReadJson = async (response: Response) => {
+  const safeReadJson = useCallback(async (response: Response) => {
     const text = await response.text();
     if (!text) return null;
     try {
@@ -23,7 +23,7 @@ export default function MyBookingsPage() {
     } catch {
       return { raw: text };
     }
-  };
+  }, []);
 
   const loadBookings = useCallback(async () => {
     if (!user) return;
