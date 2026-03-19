@@ -42,14 +42,26 @@ export function createSupabaseRouteClient(accessToken?: string): SupabaseClient 
 }
 
 export function createSupabaseAdminClient(): SupabaseClient {
-  const envServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const candidates = [
+    process.env.SUPABASE_SERVICE_ROLE_KEY,
+    process.env.SUPABASE_SERVICE_KEY,
+    process.env.SUPABASE_SERVICE_ROLE,
+    process.env.NEXT_PUBLIC_SUPABASE_SERVICE_ROLE_KEY,
+  ].filter((v): v is string => typeof v === 'string' && v.trim().length > 0);
+
+  const envServiceRoleKey = candidates[0];
   if (!envServiceRoleKey) {
-    throw new Error('Missing SUPABASE_SERVICE_ROLE_KEY environment variable. Please add your Supabase service role key to .env.local');
+    throw new Error(
+      'Missing Supabase service role key. Set SUPABASE_SERVICE_ROLE_KEY (recommended) in Vercel/ENV. Also accepted: SUPABASE_SERVICE_KEY, SUPABASE_SERVICE_ROLE.'
+    );
   }
-  if (envServiceRoleKey.trim() === 'your-service-role-key-here' || envServiceRoleKey.includes('YOUR_SUPABASE_SERVICE_ROLE_KEY')) {
-    throw new Error('SUPABASE_SERVICE_ROLE_KEY appears to be a placeholder value. Update .env.local with your real Supabase service role key.');
+
+  const trimmed = envServiceRoleKey.trim();
+  if (trimmed === 'your-service-role-key-here' || trimmed.includes('YOUR_SUPABASE_SERVICE_ROLE_KEY')) {
+    throw new Error('Supabase service role key appears to be a placeholder value.');
   }
-  return createClient(getSupabaseUrl(), envServiceRoleKey);
+
+  return createClient(getSupabaseUrl(), trimmed);
 }
 
 export function getAccessTokenFromRequest(request: Request): string | null {
