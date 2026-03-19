@@ -6,9 +6,14 @@ function isMissingDeletedAtColumn(err: unknown): boolean {
   const anyErr = err as any;
   const msg = String(anyErr?.message || '');
   const code = String(anyErr?.code || '');
+  const errText = String(anyErr?.error || '');
   return (
+    // Postgres missing column
     (msg.includes('deleted_at') && msg.includes('does not exist')) ||
-    code === '42703'
+    code === '42703' ||
+    // PostgREST schema cache missing column
+    ((msg + errText).includes('deleted_at') && (msg + errText).includes('schema cache')) ||
+    code === 'PGRST204'
   );
 }
 
