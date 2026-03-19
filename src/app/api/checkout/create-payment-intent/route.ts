@@ -11,7 +11,7 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const amount = Number(body?.amount);
-    const currency = typeof body?.currency === 'string' ? body.currency : 'USD';
+    const currency = typeof body?.currency === 'string' ? body.currency : 'NGN';
     const items = Array.isArray(body?.items) ? body.items : [];
     const availabilityToken = typeof body?.availabilityToken === 'string' ? body.availabilityToken : null;
 

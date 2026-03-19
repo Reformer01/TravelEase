@@ -57,7 +57,7 @@ export async function POST(request: NextRequest) {
     const data = json.data;
     const paystackStatus = String(data?.status || '');
     const verifiedAmountLowest = Number(data?.amount);
-    const verifiedCurrency = String(data?.currency || payment.currency || 'USD');
+    const verifiedCurrency = String(data?.currency || payment.currency || 'NGN');
 
     const expectedAmountLowest = Math.round(Number(payment.amount) * 100);
 

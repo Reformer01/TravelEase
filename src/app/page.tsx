@@ -152,9 +152,9 @@ export default function Home() {
                 </div>
                 <div className="p-6">
                   <h3 className="text-xl font-bold mb-2">Bali Stays</h3>
-                  <p className="text-slate-500 dark:text-slate-400 text-sm mb-4">Starting at $99/night. Tropical paradise awaits with private pool villas.</p>
+                  <p className="text-slate-500 dark:text-slate-400 text-sm mb-4">Starting at ₦99/night. Tropical paradise awaits with private pool villas.</p>
                   <div className="flex items-center justify-between">
-                    <span className="text-primary font-black text-xl">$99 <span className="text-slate-400 text-xs font-normal">/night</span></span>
+                    <span className="text-primary font-black text-xl">₦99 <span className="text-slate-400 text-xs font-normal">/night</span></span>
                     <Link href="/search?type=hotel&location=Bali">
                       <button className="bg-primary/10 text-primary hover:bg-primary hover:text-white px-4 py-2 rounded-lg font-bold text-sm transition-colors">Book Now</button>
                     </Link>
@@ -173,7 +173,7 @@ export default function Home() {
                   <h3 className="text-xl font-bold mb-2">Alpine Winter Sale</h3>
                   <p className="text-slate-500 dark:text-slate-400 text-sm mb-4">Save on luxury ski resorts. Early bird bookings for the season.</p>
                   <div className="flex items-center justify-between">
-                    <span className="text-primary font-black text-xl">$150 <span className="text-slate-400 text-xs font-normal">/night</span></span>
+                    <span className="text-primary font-black text-xl">₦150 <span className="text-slate-400 text-xs font-normal">/night</span></span>
                     <Link href="/search?type=hotel&location=Alps">
                       <button className="bg-primary/10 text-primary hover:bg-primary hover:text-white px-4 py-2 rounded-lg font-bold text-sm transition-colors">Book Now</button>
                     </Link>
@@ -192,7 +192,7 @@ export default function Home() {
                   <h3 className="text-xl font-bold mb-2">London City Breaks</h3>
                   <p className="text-slate-500 dark:text-slate-400 text-sm mb-4">Inclusive of full English breakfast and city tour guide.</p>
                   <div className="flex items-center justify-between">
-                    <span className="text-primary font-black text-xl">$210 <span className="text-slate-400 text-xs font-normal">/night</span></span>
+                    <span className="text-primary font-black text-xl">₦210 <span className="text-slate-400 text-xs font-normal">/night</span></span>
                     <Link href="/search?type=hotel&location=London">
                       <button className="bg-primary/10 text-primary hover:bg-primary hover:text-white px-4 py-2 rounded-lg font-bold text-sm transition-colors">Book Now</button>
                     </Link>

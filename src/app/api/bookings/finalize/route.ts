@@ -15,8 +15,8 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const paymentId = typeof body?.paymentId === 'string' ? body.paymentId : null;
-    // Default to USD if not specified - Paystack supports USD for international merchants
-    const currency = typeof body?.currency === 'string' ? body.currency : (process.env.PAYMENT_CURRENCY || 'USD');
+    // Default to NGN if not specified - Paystack supports NGN for Nigerian merchants
+    const currency = typeof body?.currency === 'string' ? body.currency : (process.env.PAYMENT_CURRENCY || 'NGN');
 
     if (!paymentId) return NextResponse.json({ error: 'Missing paymentId' }, { status: 400 });
 
