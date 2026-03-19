@@ -162,7 +162,7 @@ export default function ConfirmationPage() {
                 </div>
                 <div className="flex flex-col gap-1 text-right">
                   <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Total Paid</span>
-                  <span className="text-xl font-bold text-primary">${purchase?.total?.toFixed(2) || '0.00'}</span>
+                  <span className="text-xl font-bold text-primary">₦{Number(purchase?.total || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                 </div>
               </div>
 
