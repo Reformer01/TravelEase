@@ -69,7 +69,21 @@ export async function POST(request: NextRequest) {
           .maybeSingle();
 
         if (!statusUpdateErr) {
-          return NextResponse.json({ ok: true, deletedWith: 'user_status', booking: statusUpdated });
+          // If status update succeeded but returned null, re-fetch to verify
+          if (!statusUpdated) {
+            const { data: refetched, error: refetchErr } = await supabase
+              .from('bookings')
+              .select('*')
+              .eq('id', booking.id)
+              .eq('user_id', user.id)
+              .maybeSingle();
+            if (!refetchErr && refetched?.status === 'deleted') {
+              return NextResponse.json({ ok: true, deletedWith: 'user_status', booking: refetched });
+            }
+            // If refetch fails or status is not 'deleted', fall through to hard delete
+          } else {
+            return NextResponse.json({ ok: true, deletedWith: 'user_status', booking: statusUpdated });
+          }
         }
 
         const { error: hardDelErr } = await supabase
