@@ -70,7 +70,7 @@ export async function POST(request: NextRequest) {
 
     const { data: updated, error: updateErr } = await admin
       .from('bookings')
-      .update({ booking_date: nextBookingDate })
+      .update({ booking_date: nextBookingDate, adults: updates.adults ?? 2, children: updates.children ?? 0 })
       .eq('id', booking.id)
       .eq('user_id', user.id)
       .select('*')

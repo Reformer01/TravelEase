@@ -21,8 +21,8 @@ export function BookingModificationModal({ open, onOpenChange, booking, onSave, 
     }
     return '';
   });
-  const [adults, setAdults] = useState(2);
-  const [children, setChildren] = useState(0);
+  const [adults, setAdults] = useState(booking?.adults || 2);
+  const [children, setChildren] = useState(booking?.children || 0);
 
   const handleSave = () => {
     onSave({ checkIn, checkOut, adults, children });

@@ -40,7 +40,7 @@ export default function CheckoutPage() {
     return data.session?.access_token ?? null;
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!user) {
       toast({ variant: "destructive", title: "Error", description: "You must be logged in to book." });
@@ -65,6 +65,10 @@ export default function CheckoutPage() {
         return;
       }
 
+      // Read selected guestCount from form
+      const formData = new FormData(e.currentTarget);
+      const guestCount = Number(formData.get('guestCount')) || 2;
+
       const initRes = await fetch('/api/payments/paystack/initialize', {
         method: 'POST',
         headers: {
@@ -77,6 +81,7 @@ export default function CheckoutPage() {
           items,
           availabilityToken,
           paymentMethod,
+          guestCount,
         }),
       });
 

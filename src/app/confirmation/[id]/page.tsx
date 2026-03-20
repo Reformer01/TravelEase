@@ -157,7 +157,7 @@ export default function ConfirmationPage() {
                   <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Travelers</span>
                   <div className="flex items-center gap-2">
                     <span className="material-symbols-outlined text-sm text-slate-500">group</span>
-                    <span className="font-medium text-slate-900 dark:text-slate-100">1 Adult</span>
+                    <span className="font-medium text-slate-900 dark:text-slate-100">{purchase?.booking?.adults || 1} Adult{(purchase?.booking?.adults || 1) > 1 ? 's' : ''}{(purchase?.booking?.children || 0) > 0 ? `, ${purchase.booking.children} Children` : ''}</span>
                   </div>
                 </div>
                 <div className="flex flex-col gap-1 text-right">

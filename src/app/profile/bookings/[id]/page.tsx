@@ -435,7 +435,7 @@ export default function BookingDetailsPage() {
                             </div>
                             <div className="flex items-center gap-2 text-sm">
                               <span className="material-symbols-outlined text-slate-400 text-sm">group</span>
-                              <span>2 Adults • Breakfast Included</span>
+                              <span>{booking.adults || 2} Adult{(booking.adults || 2) > 1 ? 's' : ''}{(booking.children || 0) > 0 ? ` • ${booking.children} Children` : ''} • Breakfast Included</span>
                             </div>
                           </div>
                         </div>

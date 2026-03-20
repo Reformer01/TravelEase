@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
 
     const { data: payment, error: payErr } = await supabase
       .from('payments')
-      .select('id,user_id,status,amount,currency')
+      .select('id,user_id,status,amount,currency,metadata')
       .eq('id', paymentId)
       .single();
 
@@ -84,6 +84,9 @@ export async function POST(request: NextRequest) {
 
     const bookingReference = generateReference('BK');
 
+    const adults = typeof payment?.metadata?.guestCount === 'number' ? payment.metadata.guestCount : 2;
+    const children = 0; // Option A: children always 0 unless modified later
+
     const { data: booking, error: bookingErr } = await supabase
       .from('bookings')
       .insert({
@@ -97,6 +100,8 @@ export async function POST(request: NextRequest) {
         title: items?.[0]?.title || 'Travel Package',
         image: items?.[0]?.image || '',
         booking_date: new Date().toISOString(),
+        adults,
+        children,
       })
       .select('*')
       .single();

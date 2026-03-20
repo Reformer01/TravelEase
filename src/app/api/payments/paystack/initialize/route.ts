@@ -57,6 +57,7 @@ export async function POST(request: NextRequest) {
     const requestedCurrency = typeof body?.currency === 'string' ? body.currency : (process.env.PAYMENT_CURRENCY || 'NGN');
     const items = Array.isArray(body?.items) ? body.items : [];
     const availabilityToken = typeof body?.availabilityToken === 'string' ? body.availabilityToken : null;
+    const guestCount = typeof body?.guestCount === 'number' ? body.guestCount : 2;
 
     if (!Number.isFinite(amount) || amount <= 0) {
       return NextResponse.json({ error: 'Invalid amount' }, { status: 400 });
@@ -86,6 +87,7 @@ export async function POST(request: NextRequest) {
         provider: 'paystack',
         provider_ref: null,
         status: 'pending',
+        metadata: { guestCount },
       })
       .select('*')
       .single();
@@ -119,6 +121,7 @@ export async function POST(request: NextRequest) {
         metadata: {
           payment_id: payment.id,
           availability_token: availabilityToken,
+          guestCount,
           // Non-authoritative snapshot for UX/debug only.
           items,
         },
