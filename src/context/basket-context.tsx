@@ -1,8 +1,9 @@
-
 "use client";
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { validateAndRefreshSessionCached, fetchWithRetry, handleSessionExpired } from '@/lib/session-utils';
 import { useAuth, useUser } from '@/supabase';
+import { DateString } from '@/types/dates';
 
 const GUEST_BASKET_KEY = 'travelease_guest_basket_v1';
 
@@ -37,7 +38,7 @@ export type TravelService = {
   rating: number;
   image: string;
   location?: string;
-  date?: string;
+  date?: DateString;
 };
 
 interface BasketContextType {

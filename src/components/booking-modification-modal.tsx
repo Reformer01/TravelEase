@@ -2,12 +2,13 @@
 
 import * as React from "react";
 import { useState } from "react";
+import { BookingDates } from '@/types/dates';
 
 interface BookingModificationModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   booking: any;
-  onSave: (updates: { checkIn: string; checkOut: string; adults: number; children: number }) => void;
+  onSave: (updates: BookingDates) => void;
   loading?: boolean;
 }
 
@@ -43,7 +44,7 @@ export function BookingModificationModal({ open, onOpenChange, booking, onSave, 
   };
 
   const nights = calculateNights();
-  const originalNights = 7; // Default from original booking
+  const originalNights = 7; 
   const nightsDifference = nights - originalNights;
   
   // Calculate price (mock calculation)
@@ -202,7 +203,6 @@ export function BookingModificationModal({ open, onOpenChange, booking, onSave, 
           </div>
         </div>
 
-        {/* Footer Actions */}
         <footer className="p-6 border-t border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 flex flex-col sm:flex-row gap-3">
           <button 
             onClick={() => onOpenChange(false)}

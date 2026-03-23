@@ -6,10 +6,12 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
+import { validateAndRefreshSessionCached, fetchWithRetry, handleSessionExpired } from '@/lib/session-utils';
 import { RequireAuth } from '@/components/require-auth';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
+import { DateString } from '@/types/dates';
 
 export default function ProfilePage() {
   const { user, isUserLoading } = useUser();
@@ -24,7 +26,7 @@ export default function ProfilePage() {
     lastName: '',
     email: '',
     phoneNumber: '',
-    dateOfBirth: '',
+    dateOfBirth: '' as DateString,
     homeAddress: ''
   });
 
