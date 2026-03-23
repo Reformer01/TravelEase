@@ -1,4 +1,20 @@
-import { DateString } from '@/types/dates';
+// Date type definitions and utilities for better type safety
+
+export type DateString = string; // ISO 8601 date string format
+
+export type DateInput = string; // HTML5 date input format (YYYY-MM-DD)
+
+export interface DateRange {
+  start: DateString;
+  end: DateString;
+}
+
+export interface BookingDates {
+  checkIn: string;
+  checkOut: string;
+  adults: number;
+  children: number;
+}
 
 export interface SessionResult {
   accessToken: string | null;

@@ -1,9 +1,10 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { validateAndRefreshSessionCached, fetchWithRetry, handleSessionExpired } from '@/lib/session-utils';
+import { validateAndRefreshSessionCached, fetchWithRetry, handleSessionExpired, DateString } from '@/lib/session-utils';
 import { useAuth, useUser } from '@/supabase';
-import { DateString } from '@/types/dates';
+
+// Basket context for managing travel services
 
 const GUEST_BASKET_KEY = 'travelease_guest_basket_v1';
 
