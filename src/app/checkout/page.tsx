@@ -66,7 +66,16 @@ export default function CheckoutPage() {
       }
 
       // Read selected guestCount from form
-      const formData = new FormData(e.currentTarget);
+      const formEl =
+        e.currentTarget instanceof HTMLFormElement
+          ? e.currentTarget
+          : (e.target instanceof Element ? e.target.closest('form') : null);
+      if (!formEl) {
+        toast({ variant: "destructive", title: "Error", description: "Unable to submit form. Please try again." });
+        setLoading(false);
+        return;
+      }
+      const formData = new FormData(formEl);
       const guestCount = Number(formData.get('guestCount')) || 2;
 
       const initRes = await fetch('/api/payments/paystack/initialize', {
