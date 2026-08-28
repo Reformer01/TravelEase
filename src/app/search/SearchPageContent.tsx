@@ -77,16 +77,24 @@ export default function SearchPageContent() {
 
   const [priceRange, setPriceRange] = useState([1275000]);
   const [selectedRatings, setSelectedRatings] = useState<number[]>([5, 4]);
+  const [sortBy, setSortBy] = useState<'value' | 'price' | 'rating' | 'reviews'>('value');
 
   const allResults = useMemo(() => getResults(type), [type]);
 
   const filteredResults = useMemo(() => {
-    return allResults.filter((item) => {
+    const filtered = allResults.filter((item) => {
       const priceMatch = item.price <= priceRange[0];
       const ratingMatch = selectedRatings.includes(Math.floor(item.rating));
       return priceMatch && ratingMatch;
     });
-  }, [allResults, priceRange, selectedRatings]);
+    const sorted = [...filtered].sort((a, b) => {
+      if (sortBy === 'price') return a.price - b.price;
+      if (sortBy === 'rating') return b.rating - a.rating;
+      if (sortBy === 'reviews') return b.reviews - a.reviews;
+      return 0;
+    });
+    return sorted;
+  }, [allResults, priceRange, selectedRatings, sortBy]);
 
   const handleBookNow = (service: TravelService) => {
     addToBasket(service);
@@ -214,11 +222,11 @@ export default function SearchPageContent() {
             </div>
             <div className="flex items-center gap-3 flex-wrap">
               <span className="text-sm text-slate-500 font-medium">Sort by:</span>
-              <select className="rounded-lg border-primary/10 bg-white dark:bg-primary/5 py-1.5 pl-3 pr-8 text-sm font-semibold focus:ring-primary outline-none w-full sm:w-auto">
-                <option>Best Value</option>
-                <option>Price (Low to High)</option>
-                <option>Star Rating</option>
-                <option>Guest Reviews</option>
+              <select value={sortBy} onChange={(e) => setSortBy(e.target.value as any)} className="rounded-lg border-primary/10 bg-white dark:bg-primary/5 py-1.5 pl-3 pr-8 text-sm font-semibold focus:ring-primary outline-none w-full sm:w-auto">
+                <option value="value">Best Value</option>
+                <option value="price">Price (Low to High)</option>
+                <option value="rating">Star Rating</option>
+                <option value="reviews">Guest Reviews</option>
               </select>
             </div>
           </div>
@@ -227,17 +235,18 @@ export default function SearchPageContent() {
             {filteredResults.length === 0 ? (
               <div className="text-center py-20 bg-white dark:bg-slate-900 rounded-3xl border border-dashed border-slate-200">
                 <p className="text-slate-500">No matches found. Try adjusting your filters.</p>
+                <button onClick={() => { setPriceRange([1500000]); setSelectedRatings([5,4,3]); }} className="mt-4 text-primary font-bold text-sm hover:underline">Reset filters</button>
               </div>
             ) : (
               filteredResults.map((service) => (
-                <div
+                  <div
                   key={service.id}
                   className="group flex flex-col overflow-hidden rounded-xl border border-primary/10 bg-white dark:bg-primary/5 transition-all hover:shadow-xl hover:shadow-primary/5 sm:flex-row"
                 >
-                  <div className="relative h-64 w-full sm:h-auto sm:w-80 shrink-0 overflow-hidden">
+                  <Link href={`/search/${service.id}?type=${type}`} className="relative h-64 w-full sm:h-auto sm:w-80 shrink-0 overflow-hidden block">
                     <Image
                       src={service.image}
-                      alt={service.title}
+                      alt={`${service.title} in ${service.subLocation}`}
                       fill
                       className="object-cover transition-transform duration-500 group-hover:scale-110"
                       data-ai-hint="travel destination"
@@ -246,7 +255,7 @@ export default function SearchPageContent() {
                       <span className="size-1.5 rounded-full bg-white animate-pulse"></span>
                       {service.availability}
                     </div>
-                  </div>
+                  </Link>
                   <div className="flex flex-1 flex-col justify-between p-6">
                     <div>
                       <div className="flex items-start justify-between">
