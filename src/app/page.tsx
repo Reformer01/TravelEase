@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { useUser } from '@/supabase';
+import { Navbar } from '@/components/layout/navbar';
 
 export default function Home() {
   const router = useRouter();
@@ -13,10 +14,19 @@ export default function Home() {
 
   const loginFor = (path: string) => `/auth/login?next=${encodeURIComponent(path)}`;
 
-  const handleSearch = (e: React.FormEvent) => {
+  const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const query = destination ? `?location=${encodeURIComponent(destination)}` : '';
-    router.push(`/search${query}`);
+    const fd = new FormData(e.currentTarget);
+    // hero inputs use id but also need names — read via DOM as fallback
+    const dest = (fd.get('where') as string) || destination;
+    const datesEl = e.currentTarget.querySelector('#hero-dates') as HTMLInputElement | null;
+    const guestsEl = e.currentTarget.querySelector('#hero-guests') as HTMLInputElement | null;
+    const params = new URLSearchParams();
+    if (dest) params.set('location', dest);
+    if (datesEl?.value) params.set('dates', datesEl.value);
+    if (guestsEl?.value) params.set('guests', guestsEl.value);
+    const q = params.toString();
+    router.push(`/search${q ? `?${q}` : ''}`);
   };
 
   if (isUserLoading) {
@@ -29,30 +39,8 @@ export default function Home() {
 
   return (
     <div className="relative flex min-h-screen w-full flex-col overflow-x-hidden">
+      <Navbar />
       <div className="layout-container flex h-full grow flex-col">
-        {/* Navigation Bar */}
-        <header className="flex items-center justify-between whitespace-nowrap border-b border-slate-200 dark:border-slate-800 px-6 py-4 lg:px-20">
-          <Link href="/" className="flex items-center gap-2 text-primary">
-            <span className="material-symbols-outlined text-3xl font-bold">flight_takeoff</span>
-            <h2 className="text-slate-900 dark:text-slate-100 text-xl font-black leading-tight tracking-tight">TravelEase</h2>
-          </Link>
-          <nav className="hidden md:flex items-center gap-8">
-            <Link className="text-sm font-semibold hover:text-primary transition-colors text-slate-600 dark:text-slate-300" href="/search?type=flight">Discover</Link>
-            <Link className="text-sm font-semibold hover:text-primary transition-colors text-slate-600 dark:text-slate-300" href="/search?type=car">Cars</Link>
-            <Link className="text-sm font-semibold hover:text-primary transition-colors text-slate-600 dark:text-slate-300" href={user ? "/profile/bookings" : loginFor('/profile/bookings')}>My Bookings</Link>
-            <Link className="text-sm font-semibold hover:text-primary transition-colors text-slate-600 dark:text-slate-300" href="/support">Support</Link>
-          </nav>
-          <div className="flex gap-3">
-            <Link href="/basket" aria-label="Basket" className="relative flex items-center justify-center rounded-xl h-10 w-10 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-primary/20 transition-colors">
-              <span className="material-symbols-outlined text-[20px]">shopping_basket</span>
-            </Link>
-            <Link href={user ? "/profile" : loginFor('/profile')} aria-label="Profile">
-              <button className="flex items-center justify-center rounded-xl h-10 w-10 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-primary/20 transition-colors">
-                <span className="material-symbols-outlined text-[20px]">person</span>
-              </button>
-            </Link>
-          </div>
-        </header>
         <main className="flex flex-col flex-1">
           {/* Hero Section */}
           <section className="relative px-4 py-8 lg:px-20 lg:py-12">
@@ -82,6 +70,7 @@ export default function Home() {
                     <span className="material-symbols-outlined text-primary mr-3" aria-hidden="true">location_on</span>
                     <input 
                       id="hero-where"
+                      name="where"
                       className="w-full bg-transparent border-none focus:ring-2 focus:ring-primary/50 rounded-lg text-slate-900 dark:text-slate-100 placeholder:text-slate-400 p-0 h-auto" 
                       placeholder="Where to?" 
                       type="text"
@@ -92,12 +81,12 @@ export default function Home() {
                   <div className="flex-1 flex items-center px-4 py-3 border-b lg:border-b-0 lg:border-r border-slate-100 dark:border-slate-800">
                     <label htmlFor="hero-dates" className="sr-only">Dates</label>
                     <span className="material-symbols-outlined text-primary mr-3" aria-hidden="true">calendar_month</span>
-                    <input id="hero-dates" className="w-full bg-transparent border-none focus:ring-2 focus:ring-primary/50 rounded-lg text-slate-900 dark:text-slate-100 placeholder:text-slate-400 p-0 h-auto" placeholder="Dates" type="date" />
+                    <input id="hero-dates" name="dates" className="w-full bg-transparent border-none focus:ring-2 focus:ring-primary/50 rounded-lg text-slate-900 dark:text-slate-100 placeholder:text-slate-400 p-0 h-auto" placeholder="Dates" type="date" />
                   </div>
                   <div className="flex-1 flex items-center px-4 py-3">
                     <label htmlFor="hero-guests" className="sr-only">Guests</label>
                     <span className="material-symbols-outlined text-primary mr-3" aria-hidden="true">group</span>
-                    <input id="hero-guests" className="w-full bg-transparent border-none focus:ring-2 focus:ring-primary/50 rounded-lg text-slate-900 dark:text-slate-100 placeholder:text-slate-400 p-0 h-auto" placeholder="Guests" type="number" min="1" defaultValue={2} />
+                    <input id="hero-guests" name="guests" className="w-full bg-transparent border-none focus:ring-2 focus:ring-primary/50 rounded-lg text-slate-900 dark:text-slate-100 placeholder:text-slate-400 p-0 h-auto" placeholder="Guests" type="number" min="1" defaultValue={2} />
                   </div>
                   <button type="submit" className="bg-primary text-white font-bold py-3 px-8 rounded-xl hover:brightness-110 transition-all flex items-center justify-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2">
                     <span className="material-symbols-outlined" aria-hidden="true">search</span>

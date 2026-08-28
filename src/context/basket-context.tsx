@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useAuth, useUser } from '@/supabase';
+import { useToast } from '@/hooks/use-toast';
 
 // Basket context for managing travel services
 
@@ -60,6 +61,7 @@ export function BasketProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const { user } = useUser();
   const auth = useAuth();
+  const { toast } = useToast();
 
   const readGuestBasket = (): TravelService[] => {
     if (typeof window === 'undefined') return [];
@@ -158,6 +160,7 @@ export function BasketProvider({ children }: { children: React.ReactNode }) {
           }
 
           clearGuestBasket();
+          if (extras.length > 0) toast({ title: `Basket merged`, description: `${extras.length} item${extras.length>1?'s':''} from guest session added.` });
         } else {
           console.error('Failed to load basket', { status: response.status, body: json });
           setItems([]);

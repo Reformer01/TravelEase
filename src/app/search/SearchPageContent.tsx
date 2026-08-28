@@ -9,6 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useUser } from '@/supabase';
 import { Slider } from '@/components/ui/slider';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Navbar } from '@/components/layout/navbar';
 
 const getResults = (
   type: string | null
@@ -78,6 +79,7 @@ export default function SearchPageContent() {
   const [priceRange, setPriceRange] = useState([1275000]);
   const [selectedRatings, setSelectedRatings] = useState<number[]>([5, 4]);
   const [sortBy, setSortBy] = useState<'value' | 'price' | 'rating' | 'reviews'>('value');
+  const [showFilters, setShowFilters] = useState(false);
 
   const allResults = useMemo(() => getResults(type), [type]);
 
@@ -110,72 +112,7 @@ export default function SearchPageContent() {
 
   return (
     <div className="relative flex min-h-screen flex-col overflow-x-hidden font-display bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 transition-colors duration-200">
-      <header className="sticky top-0 z-50 w-full border-b border-primary/10 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md px-4 sm:px-6 lg:px-20 py-3">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 md:gap-8">
-          <div className="flex items-center gap-4 md:gap-8">
-            <Link href="/" className="flex items-center gap-2 text-primary">
-              <span className="material-symbols-outlined text-3xl font-bold">flight_takeoff</span>
-              <h2 className="text-xl font-bold leading-tight tracking-tight text-slate-900 dark:text-slate-100">TravelEase</h2>
-            </Link>
-            <div className="hidden md:flex flex-col min-w-64">
-              <div className="flex w-full items-stretch rounded-xl h-10 overflow-hidden bg-slate-200/50 dark:bg-primary/10 border border-slate-300 dark:border-primary/20">
-                <div className="flex items-center justify-center pl-3 text-slate-500">
-                  <span className="material-symbols-outlined">search</span>
-                </div>
-                <input
-                  className="w-full border-none bg-transparent focus:ring-0 text-sm placeholder:text-slate-400"
-                  placeholder="Where to next?"
-                  defaultValue={locationParam}
-                />
-              </div>
-            </div>
-          </div>
-          <div className="flex items-center gap-3 md:gap-6">
-            <nav className="hidden lg:flex items-center gap-8">
-              <Link
-                className={`text-sm font-semibold transition-colors ${type === 'hotel' ? 'text-primary' : 'hover:text-primary text-slate-600 dark:text-slate-300'}`}
-                href="/search?type=hotel"
-              >
-                Hotels
-              </Link>
-              <Link
-                className={`text-sm font-semibold transition-colors ${type === 'flight' ? 'text-primary' : 'hover:text-primary text-slate-600 dark:text-slate-300'}`}
-                href="/search?type=flight"
-              >
-                Flights
-              </Link>
-              <Link
-                className={`text-sm font-semibold transition-colors ${type === 'car' ? 'text-primary' : 'hover:text-primary text-slate-600 dark:text-slate-300'}`}
-                href="/search?type=car"
-              >
-                Cars
-              </Link>
-              <Link
-                className="text-sm font-semibold text-slate-600 dark:text-slate-300 hover:text-primary transition-colors"
-                href={user ? '/profile/bookings' : loginFor('/profile/bookings')}
-              >
-                My Bookings
-              </Link>
-              <Link className="text-sm font-semibold text-slate-600 dark:text-slate-300 hover:text-primary transition-colors" href="/support">
-                Support
-              </Link>
-            </nav>
-            <div className="flex gap-3">
-              <Link
-                href="/basket"
-                className="relative flex items-center justify-center rounded-xl size-10 bg-slate-200/50 dark:bg-primary/10 hover:bg-primary/20 transition-colors"
-              >
-                <span className="material-symbols-outlined text-slate-700 dark:text-slate-200">shopping_basket</span>
-              </Link>
-              <Link href={user ? '/profile' : loginFor('/profile')}>
-                <button className="flex items-center justify-center rounded-xl size-10 bg-slate-200/50 dark:bg-primary/10 hover:bg-primary/20 transition-colors">
-                  <span className="material-symbols-outlined text-slate-700 dark:text-slate-200">account_circle</span>
-                </button>
-              </Link>
-            </div>
-          </div>
-        </div>
-      </header>
+      <Navbar />
 
       <main className="mx-auto flex w-full max-w-7xl flex-1 gap-4 md:gap-8 px-4 sm:px-6 lg:px-20 py-8">
           <aside className="hidden w-72 shrink-0 flex-col gap-4 md:gap-8 lg:flex" aria-label="Filters">
@@ -221,6 +158,7 @@ export default function SearchPageContent() {
               <span className="font-semibold">{type.charAt(0).toUpperCase() + type.slice(1)}s</span>
             </div>
             <div className="flex items-center gap-3 flex-wrap">
+              <button onClick={() => setShowFilters(!showFilters)} className="lg:hidden flex items-center gap-1 px-3 py-1.5 rounded-lg border border-primary/20 bg-white dark:bg-slate-900 text-sm font-bold">Filters {showFilters ? '×' : '≡'}</button>
               <span className="text-sm text-slate-500 font-medium">Sort by:</span>
               <select value={sortBy} onChange={(e) => setSortBy(e.target.value as any)} className="rounded-lg border-primary/10 bg-white dark:bg-primary/5 py-1.5 pl-3 pr-8 text-sm font-semibold focus:ring-primary outline-none w-full sm:w-auto">
                 <option value="value">Best Value</option>
@@ -230,6 +168,13 @@ export default function SearchPageContent() {
               </select>
             </div>
           </div>
+          {showFilters && (
+            <div className="lg:hidden rounded-xl border border-primary/10 bg-white dark:bg-slate-900 p-6 space-y-4">
+              <h3 className="font-bold">Filters</h3>
+              <div><h4 className="text-xs font-bold uppercase tracking-wider text-slate-500">Max Price: ₦{priceRange[0].toLocaleString()}</h4><Slider max={1500000} step={15000} value={priceRange} onValueChange={setPriceRange} /></div>
+              <div className="flex flex-col gap-2">{[5,4,3].map(s => <label key={s} className="flex items-center gap-2"><Checkbox checked={selectedRatings.includes(s)} onCheckedChange={() => setSelectedRatings(p => p.includes(s) ? p.filter(r=>r!==s) : [...p,s])} /><span>{s} ★</span></label>)}</div>
+            </div>
+          )}
 
           <div className="grid grid-cols-1 gap-4 md:gap-6">
             {filteredResults.length === 0 ? (

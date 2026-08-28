@@ -12,6 +12,7 @@ import { RequireAuth } from '@/components/require-auth';
 import { CancellationModal } from '@/components/cancellation-modal';
 import { BookingModificationModal } from '@/components/booking-modification-modal';
 import { DeleteConfirmationModal } from '@/components/delete-confirmation-modal';
+import { computePriceBreakdown } from '@/lib/pricing';
 
 export default function BookingDetailsPage() {
   const { id } = useParams();
@@ -270,12 +271,11 @@ export default function BookingDetailsPage() {
   const hotelItems = items?.filter(item => item.type === 'hotel') || [];
   const carItems = items?.filter(item => item.type === 'car') || [];
 
-  // Calculate totals
+  // Calculate totals — use pricing SSOT (P0-4 fix: was 0.08, now 0.10+0.02)
   const flightTotal = flightItems.reduce((sum, item) => sum + item.price, 0);
   const hotelTotal = hotelItems.reduce((sum, item) => sum + item.price, 0);
   const carTotal = carItems.reduce((sum, item) => sum + item.price, 0);
-  const taxesAndFees = Math.floor((flightTotal + hotelTotal + carTotal) * 0.08);
-  const totalPaid = flightTotal + hotelTotal + carTotal + taxesAndFees;
+  const { taxesAndFees } = computePriceBreakdown(flightTotal + hotelTotal + carTotal);
 
   const isCancelled = booking?.status === 'cancelled';
   const isDeleted = booking?.status === 'deleted';

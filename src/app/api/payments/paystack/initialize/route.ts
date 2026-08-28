@@ -30,6 +30,13 @@ export async function POST(request: NextRequest) {
     if (!availabilityToken) {
       return NextResponse.json({ error: 'Missing availabilityToken' }, { status: 400 });
     }
+    // Validate token shape + 20 min expiry (P0-1 honest stub)
+    const parts = availabilityToken.split('_');
+    const tsStr = parts[parts.length-1];
+    const ts = Number(tsStr);
+    if (availabilityToken.startsWith('av_') && Number.isFinite(ts) && Date.now() - ts > 20*60*1000) {
+      return NextResponse.json({ error: 'Availability token expired. Please re-verify.' }, { status: 409 });
+    }
 
     // Use the requested currency directly. Paystack will reject unsupported
     // currencies at initialize time, which is surfaced to the user.

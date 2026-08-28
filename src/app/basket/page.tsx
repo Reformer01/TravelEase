@@ -8,12 +8,15 @@ import { useAuth, useUser } from '@/supabase';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { computePriceBreakdown } from '@/lib/pricing';
+import { useToast } from '@/hooks/use-toast';
+import { Navbar } from '@/components/layout/navbar';
 
 export default function BasketPage() {
   const { items, removeFromBasket, totalPrice, isLoading } = useBasket();
   const { user } = useUser();
   const auth = useAuth();
   const router = useRouter();
+  const { toast } = useToast();
   const [isVerifying, setIsVerifying] = useState(false);
 
   const loginFor = (path: string) => `/auth/login?next=${encodeURIComponent(path)}`;
@@ -55,14 +58,16 @@ export default function BasketPage() {
         : {};
       if (!res.ok) {
         console.error('Availability verify failed', json);
+        toast({ variant: 'destructive', title: 'Availability check failed', description: (json as any)?.error || 'Some items may be unavailable. Try removing them.' });
         setIsVerifying(false);
         return;
       }
       const token = (json as any).token as string;
       try { sessionStorage.setItem('availabilityToken', token); } catch {}
       router.push(`/checkout?availabilityToken=${encodeURIComponent(token)}`);
-    } catch (e) {
+    } catch (e: any) {
       console.error('Availability verify error', e);
+      toast({ variant: 'destructive', title: 'Verification error', description: e?.message || 'Please try again.' });
     } finally {
       setIsVerifying(false);
     }
@@ -70,33 +75,7 @@ export default function BasketPage() {
 
   return (
       <div className="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 min-h-screen">
-      <nav className="sticky top-0 z-50 bg-white/80 dark:bg-background-dark/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16 items-center gap-3 md:gap-8">
-            <Link href="/" className="flex items-center gap-2">
-              <div className="bg-primary p-1.5 rounded-lg text-white">
-                <span className="material-symbols-outlined block text-2xl">flight_takeoff</span>
-              </div>
-              <span className="text-xl font-bold tracking-tight text-slate-900 dark:text-white uppercase">TravelEase</span>
-            </Link>
-            <div className="hidden md:flex items-center gap-4 md:gap-8">
-              <Link className="text-sm font-semibold hover:text-primary transition-colors text-slate-600 dark:text-slate-300" href="/">Home</Link>
-              <Link className="text-sm font-semibold hover:text-primary transition-colors text-slate-600 dark:text-slate-300" href={user ? "/profile/bookings" : loginFor('/profile/bookings')}>Bookings</Link>
-              <Link className="text-sm font-semibold text-primary" href="/basket">Basket</Link>
-            </div>
-            <div className="flex items-center gap-3 md:gap-4">
-              <button className="p-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors">
-                <span className="material-symbols-outlined">notifications</span>
-              </button>
-              <Link href={user ? "/profile" : loginFor('/profile')}>
-                <div className="h-8 w-8 rounded-full bg-primary/20 flex items-center justify-center overflow-hidden border border-primary/30">
-                  <Image width={32} height={32} alt="Profile" src={(user?.user_metadata?.avatar_url as string | undefined) || "https://picsum.photos/seed/user/200/200"} />
-                </div>
-              </Link>
-            </div>
-          </div>
-        </div>
-      </nav>
+      <Navbar />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex flex-col gap-2 mb-8">
