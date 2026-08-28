@@ -1,0 +1,164 @@
+{
+  "journey": {
+    "name": "E-commerce Purchase Journey",
+    "persona": "Online Shopper",
+    "goal": "Find and purchase the right product at a good price",
+    "stages": [
+      {
+        "name": "Discovery",
+        "actions": [
+          "Searches for product",
+          "Browses categories",
+          "Sees recommendation"
+        ],
+        "touchpoints": [
+          "Search engine",
+          "Social media",
+          "Email newsletter",
+          "Marketplace"
+        ],
+        "emotions": {
+          "score": 3,
+          "label": "Browsing, open to options"
+        },
+        "pain_points": [
+          "Search returns irrelevant results",
+          "Category structure is confusing"
+        ],
+        "opportunities": [
+          "Personalized recommendations",
+          "Smart search with filters"
+        ]
+      },
+      {
+        "name": "Consideration",
+        "actions": [
+          "Views product details",
+          "Reads reviews",
+          "Compares options",
+          "Checks sizing/specs"
+        ],
+        "touchpoints": [
+          "Product page",
+          "Reviews section",
+          "Size guide",
+          "Comparison tool"
+        ],
+        "emotions": {
+          "score": 4,
+          "label": "Interested, needs reassurance"
+        },
+        "pain_points": [
+          "Insufficient product images",
+          "Fake or unhelpful reviews",
+          "No size guidance"
+        ],
+        "opportunities": [
+          "360-degree product views",
+          "Verified purchase reviews",
+          "AR try-on"
+        ]
+      },
+      {
+        "name": "Purchase",
+        "actions": [
+          "Adds to cart",
+          "Applies coupon",
+          "Enters shipping info",
+          "Completes payment"
+        ],
+        "touchpoints": [
+          "Cart",
+          "Checkout flow",
+          "Payment processor",
+          "Order confirmation"
+        ],
+        "emotions": {
+          "score": 3,
+          "label": "Anxious about commitment"
+        },
+        "pain_points": [
+          "Unexpected shipping costs",
+          "Too many checkout steps",
+          "Limited payment options"
+        ],
+        "opportunities": [
+          "One-page checkout",
+          "Free shipping threshold",
+          "Guest checkout option"
+        ]
+      },
+      {
+        "name": "Delivery",
+        "actions": [
+          "Tracks order",
+          "Receives package",
+          "Inspects product"
+        ],
+        "touchpoints": [
+          "Tracking page",
+          "Email updates",
+          "SMS notifications",
+          "Package"
+        ],
+        "emotions": {
+          "score": 4,
+          "label": "Excited, anticipating"
+        },
+        "pain_points": [
+          "No tracking updates",
+          "Delayed delivery",
+          "Damaged packaging"
+        ],
+        "opportunities": [
+          "Real-time delivery tracking",
+          "Proactive delay notifications"
+        ]
+      },
+      {
+        "name": "Post-Purchase",
+        "actions": [
+          "Uses product",
+          "Writes review",
+          "Contacts support if needed",
+          "Considers reorder"
+        ],
+        "touchpoints": [
+          "Product",
+          "Review prompt email",
+          "Support chat",
+          "Reorder email"
+        ],
+        "emotions": {
+          "score": 4,
+          "label": "Satisfied or seeking resolution"
+        },
+        "pain_points": [
+          "Product doesn't match description",
+          "Difficult return process"
+        ],
+        "opportunities": [
+          "Easy self-service returns",
+          "Post-purchase care emails",
+          "Loyalty program"
+        ]
+      }
+    ]
+  },
+  "metrics": {
+    "total_stages": 5,
+    "avg_emotion_score": 3.6,
+    "lowest_emotion_stage": "Discovery",
+    "highest_emotion_stage": "Consideration",
+    "biggest_drops": [
+      {
+        "from_stage": "Consideration",
+        "to_stage": "Purchase",
+        "drop": 1
+      }
+    ],
+    "total_pain_points": 13,
+    "total_opportunities": 13,
+    "critical_stage": "Discovery"
+  }
+}

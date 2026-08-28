@@ -40,7 +40,10 @@ export async function POST(request: NextRequest) {
     const supabase = createSupabaseRouteClient(accessToken);
 
     const { booking, error: bookingErr } = await resolveBookingForUser(supabase, user.id, reference);
-    if (bookingErr) return NextResponse.json({ error: bookingErr.message }, { status: 500 });
+    if (bookingErr) {
+      console.error('Failed to resolve booking for modify', bookingErr);
+      return NextResponse.json({ error: 'Unable to find booking' }, { status: 500 });
+    }
     if (!booking) return NextResponse.json({ error: 'Booking not found' }, { status: 404 });
 
     if (booking.status === 'cancelled') {
@@ -76,13 +79,15 @@ export async function POST(request: NextRequest) {
       .select('*')
       .maybeSingle();
 
-    if (updateErr) return NextResponse.json({ error: updateErr.message }, { status: 500 });
+    if (updateErr) {
+      console.error('Failed to modify booking', updateErr);
+      return NextResponse.json({ error: 'Unable to modify booking' }, { status: 500 });
+    }
     if (!updated) return NextResponse.json({ error: 'Modify did not affect any rows' }, { status: 409 });
 
     return NextResponse.json({ ok: true, booking: updated });
   } catch (e) {
     console.error('POST /api/bookings/modify error', e);
-    const message = e instanceof Error ? e.message : 'Unknown error';
-    return NextResponse.json({ error: 'Unable to modify booking', detail: message }, { status: 500 });
+    return NextResponse.json({ error: 'Unable to modify booking' }, { status: 500 });
   }
 }

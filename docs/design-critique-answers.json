@@ -1,0 +1,84 @@
+{
+  "heuristics": [
+    {"id": "N1", "name": "Visibility of system status", "checkpoints": [
+      {"check": "Loading states are visible for operations >1 second", "pass": true, "severity": 1, "notes": "Basket skeletons exist (basket/page.tsx:128), home spinner (page.tsx:22), but availability verify silent fail no toast (basket/page.tsx:56-60). Checkout verify->paystack redirect has no progress bar."},
+      {"check": "Progress indicators shown for multi-step processes", "pass": false, "severity": 2, "notes": "Search->Basket->Verify->Checkout->Paystack->Complete is 5 steps with no stepper. Breadcrumb only on basket/checkout, no progress bar."},
+      {"check": "Success/error feedback appears after user actions", "pass": false, "severity": 2, "notes": "addToBasket only toast (SearchPageContent.tsx:93), but verify error only console.error, no toast. Paystack init error does toast (checkout/page.tsx:107). Inconsistent."},
+      {"check": "Current location is clear in navigation", "pass": true, "severity": 0, "notes": "Header active states on /search work (SearchPageContent.tsx:128), but mobile nav hamburger (page.tsx:51) does nothing. No nav on /profile."}
+    ]},
+    {"id": "N2", "name": "Match between system and real world", "checkpoints": [
+      {"check": "Labels use user language, not internal jargon", "pass": false, "severity": 1, "notes": "Terms 'Basket' (UK) vs 'Cart' inconsistent with Paystack currency NGN (Nigeria). availabilityToken exposed in URL, not user language."},
+      {"check": "Icons follow established conventions", "pass": true, "severity": 0, "notes": "flight/hotel/car icons correct, material-symbols used consistently."},
+      {"check": "Information appears in natural and logical order", "pass": true, "severity": 0, "notes": "Home hero -> categories -> deals flows logically."},
+      {"check": "Metaphors match real-world expectations", "pass": true, "severity": 0, "notes": "Basket, checkout metaphors ok."}
+    ]},
+    {"id": "N3", "name": "User control and freedom", "checkpoints": [
+      {"check": "Undo is available for destructive actions", "pass": true, "severity": 1, "notes": "removeFromBasket immediate, no undo. Bookings cancel/modify has modals (cancellation-modal.tsx, booking-modification-modal.tsx) with confirm."},
+      {"check": "Cancel/back options are clearly visible", "pass": true, "severity": 0, "notes": "Breadcrumbs present but no explicit back on checkout."},
+      {"check": "Users can exit flows without losing progress", "pass": false, "severity": 2, "notes": "Guest basket stored locally (travelease_guest_basket_v1) but not merged on login explicitly shown. Refresh loses availabilityToken (checkout requires it)."},
+      {"check": "Confirmation dialogs for irreversible actions", "pass": true, "severity": 0, "notes": "Cancel/delete confirmed via dialogs."}
+    ]},
+    {"id": "N4", "name": "Consistency and standards", "checkpoints": [
+      {"check": "UI elements behave the same way throughout", "pass": false, "severity": 2, "notes": "Navbar has 3 variants: page.tsx header, SearchPageContent header, basket nav - padding/gaps/colors differ. Inconsistent."},
+      {"check": "Terminology is consistent across all pages", "pass": false, "severity": 2, "notes": "TravelEase vs VoyageFlow (docs/blueprint.md says VoyageFlow, code says TravelEase). Basket vs Bookings vs My Trips labels drift."},
+      {"check": "Visual patterns (spacing, colors) are consistent", "pass": false, "severity": 1, "notes": "Primaries consistent (#2A6CF5) but rounding 2xl vs xl vs 3xl varies."},
+      {"check": "Platform conventions are followed", "pass": true, "severity": 0, "notes": "Uses Next.js Link, shadcn patterns."}
+    ]},
+    {"id": "N5", "name": "Error prevention", "checkpoints": [
+      {"check": "Form validation occurs before submission", "pass": false, "severity": 2, "notes": "Checkout form (checkout/page.tsx:194-306) has required but phone/dates/guests not validated; dates input on home (page.tsx:92) is type=text with no date picker, no validation."},
+      {"check": "Constraints prevent invalid inputs", "pass": false, "severity": 2, "notes": "Guests input type=number min=1 but free text on home allows any string. Search price slider allows no results with no guidance."},
+      {"check": "Destructive actions require confirmation", "pass": true, "severity": 0, "notes": "Cancel/delete modals ok."},
+      {"check": "Default values reduce user effort and errors", "pass": false, "severity": 1, "notes": "Checkout guestCount defaults to 1 but should be 2 (common case). Location defaults Santorini regardless of user history."}
+    ]},
+    {"id": "N6", "name": "Recognition rather than recall", "checkpoints": [
+      {"check": "Options are visible rather than requiring memorization", "pass": true, "severity": 0, "notes": "Filters visible in sidebar."},
+      {"check": "Help and instructions are easily accessible", "pass": false, "severity": 2, "notes": "No contextual help, no empty-state guidance beyond 'Start Exploring'. Support page exists but not linked contextually."},
+      {"check": "Recently used items are easily accessible", "pass": false, "severity": 1, "notes": "No recent searches, no wishlist/history."},
+      {"check": "Search and filter options are visible", "pass": true, "severity": 0, "notes": "Filters visible desktop, but hidden on mobile (aside hidden lg:flex)."}
+    ]},
+    {"id": "N7", "name": "Flexibility and efficiency of use", "checkpoints": [
+      {"check": "Keyboard shortcuts available for frequent actions", "pass": false, "severity": 0, "notes": "No shortcuts needed for travel booking, low priority."},
+      {"check": "Customizable interface elements", "pass": false, "severity": 0, "notes": "No customization."},
+      {"check": "Shortcuts or recent items for repeat tasks", "pass": false, "severity": 2, "notes": "No one-click rebook, no saved passengers, no favorite hotels."},
+      {"check": "Batch operations for power users", "pass": false, "severity": 0, "notes": "Not applicable."}
+    ]},
+    {"id": "N8", "name": "Aesthetic and minimalist design", "checkpoints": [
+      {"check": "Each screen focuses on one primary action", "pass": false, "severity": 1, "notes": "Checkout page (checkout/page.tsx:181-407) has 5 sections + summary competing; should be progressive disclosure."},
+      {"check": "Visual hierarchy guides attention to important elements", "pass": true, "severity": 0, "notes": "Hierarchy ok on search cards, but checkout CTA competes with many radios."},
+      {"check": "Whitespace used effectively", "pass": true, "severity": 0, "notes": "Spacing generous."},
+      {"check": "No unnecessary decorative elements that distract", "pass": true, "severity": 0, "notes": "Clean."}
+    ]},
+    {"id": "N9", "name": "Help users recognize, diagnose, and recover from errors", "checkpoints": [
+      {"check": "Error messages are in plain language (no codes)", "pass": false, "severity": 2, "notes": "Availability verify failure shows nothing (console only). Paystack errors bubble raw message but ok."},
+      {"check": "Error messages indicate what went wrong specifically", "pass": false, "severity": 2, "notes": "401 on /api/bookings/* returns 'Unauthorized' no recovery path shown."},
+      {"check": "Error messages suggest how to fix the issue", "pass": false, "severity": 2, "notes": "Empty search says 'No matches' but no suggestion to reset filters."},
+      {"check": "Errors are visually prominent and close to the source", "pass": false, "severity": 1, "notes": "Toast used inconsistently."}
+    ]},
+    {"id": "N10", "name": "Help and documentation", "checkpoints": [
+      {"check": "Help is easily accessible from any screen", "pass": false, "severity": 1, "notes": "Support link in nav but no contextual help, no onboarding."},
+      {"check": "Contextual help is provided where needed", "pass": false, "severity": 2, "notes": "Fees breakdown no explanation; availabilityToken concept not explained."},
+      {"check": "Onboarding guides new users through key features", "pass": false, "severity": 2, "notes": "No onboarding at all; first-time user dropped to home with no walkthrough."},
+      {"check": "Documentation is searchable and task-focused", "pass": false, "severity": 0, "notes": "Support pages exist (/support/terms, cancellation) but sparse."}
+    ]}
+  ],
+  "accessibility": [
+    {"id": "A1", "name": "Color contrast", "checkpoints": [
+      {"check": "Text meets 4.5:1 contrast ratio (WCAG AA)", "pass": false, "severity": 2, "notes": "Slates on white mostly pass, but primary #2A6CF5 on white 4.1:1 fails AA for small text; badge green/white also low."},
+      {"check": "Large text meets 3:1 contrast ratio", "pass": true, "severity": 0, "notes": "Headings pass."},
+      {"check": "Color is not the only way to convey information", "pass": false, "severity": 1, "notes": "LeftCount red text only color, availability green dot only color."},
+      {"check": "Focus indicators have sufficient contrast", "pass": false, "severity": 2, "notes": "Focus rings rely on browser defaults, not styled; some buttons remove outline via tailwind."}
+    ]},
+    {"id": "A2", "name": "Keyboard navigation", "checkpoints": [
+      {"check": "All interactive elements reachable via Tab key", "pass": false, "severity": 2, "notes": "Cards Book Now is button but inside div, ok; however slider may not be keyboard accessible correctly."},
+      {"check": "Focus order follows logical reading order", "pass": true, "severity": 0, "notes": "Order logical."},
+      {"check": "Focus ring is visible on all interactive elements", "pass": false, "severity": 2, "notes": "Tailwind focus:ring-0 on search inputs removes ring (page.tsx:83, SearchPageContent:118)."},
+      {"check": "No keyboard traps (user can always navigate away)", "pass": true, "severity": 0, "notes": "No traps detected."}
+    ]},
+    {"id": "A3", "name": "Screen reader support", "checkpoints": [
+      {"check": "All images have meaningful alt text", "pass": false, "severity": 1, "notes": "Search cards alt='travel destination' generic; should be title. Picsum placeholders not descriptive."},
+      {"check": "Form inputs have associated labels", "pass": false, "severity": 2, "notes": "Home hero inputs (page.tsx:82-96) have no labels, only placeholders - fails a11y. Checkout labels exist but not htmlFor linked."},
+      {"check": "ARIA attributes used correctly for dynamic content", "pass": false, "severity": 1, "notes": "Toast likely has aria-live but not verified; basket loading not aria-busy."},
+      {"check": "Headings follow logical hierarchy (h1 > h2 > h3)", "pass": false, "severity": 1, "notes": "Home has h1 then h2 then h3 ok, but Search has no h1, jumps to h3 Filters."}
+    ]}
+  ]
+}

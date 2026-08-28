@@ -12,6 +12,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { DateString } from '@/types/dates';
+import { FooterYear } from '@/components/layout/footer-year';
 
 export default function ProfilePage() {
   const { user, isUserLoading } = useUser();
@@ -300,17 +301,17 @@ export default function ProfilePage() {
                       className="w-full bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 rounded-lg focus:ring-primary focus:border-primary p-3 text-sm"
                     />
                   </div>
+                  <div className="md:col-span-2 flex justify-end pt-2">
+                    <Button disabled={saving} type="submit" className="bg-primary hover:bg-primary/90 text-white font-bold py-2.5 px-8 rounded-xl transition-all shadow-md shadow-primary/20">
+                      {saving ? (
+                        <>
+                          <span className="material-symbols-outlined animate-spin mr-2">refresh</span>
+                          Saving...
+                        </>
+                      ) : 'Save Changes'}
+                    </Button>
+                  </div>
                 </form>
-              </div>
-              <div className="p-6 bg-slate-50 dark:bg-slate-800/50 flex justify-end">
-                <Button disabled={saving} type="submit" className="bg-primary hover:bg-primary/90 text-white font-bold py-2.5 px-8 rounded-xl transition-all shadow-md shadow-primary/20">
-                  {saving ? (
-                    <>
-                      <span className="material-symbols-outlined animate-spin mr-2">refresh</span>
-                      Saving...
-                    </>
-                  ) : 'Save Changes'}
-                </Button>
               </div>
             </section>
 
@@ -395,7 +396,7 @@ export default function ProfilePage() {
             </div>
           </div>
           <div className="pt-8 border-t border-slate-100 dark:border-slate-800 flex flex-col md:flex-row justify-between items-center gap-4">
-            <p className="text-xs text-slate-400"> 2026 TravelEase. All rights reserved.</p>
+            <p className="text-xs text-slate-400"><FooterYear /> TravelEase. All rights reserved.</p>
             <div className="flex gap-6">
               <Link className="text-slate-400 hover:text-primary transition-colors" href="#"><span className="material-symbols-outlined">social_leaderboard</span></Link>
               <Link className="text-slate-400 hover:text-primary transition-colors" href="#"><span className="material-symbols-outlined">share</span></Link>

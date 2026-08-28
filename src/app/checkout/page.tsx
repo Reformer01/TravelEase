@@ -9,6 +9,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useAuth, useUser } from '@/supabase';
 import { RequireAuth } from '@/components/require-auth';
+import { computePriceBreakdown, DEFAULT_CURRENCY } from '@/lib/pricing';
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -27,9 +28,7 @@ export default function CheckoutPage() {
 
   const loginFor = (path: string) => `/auth/login?next=${encodeURIComponent(path)}`;
 
-  const taxesAndFees = Math.floor(totalPrice * 0.1);
-  const serviceFee = Math.floor(totalPrice * 0.02);
-  const grandTotal = totalPrice + taxesAndFees + serviceFee;
+  const { taxesAndFees, serviceFee, grandTotal } = computePriceBreakdown(totalPrice);
 
   const getAccessToken = async (): Promise<string | null> => {
     const { data, error } = await auth.auth.getSession();
@@ -86,7 +85,7 @@ export default function CheckoutPage() {
         },
         body: JSON.stringify({
           amount: grandTotal,
-          currency: 'NGN',
+          currency: DEFAULT_CURRENCY,
           items,
           availabilityToken,
           paymentMethod,

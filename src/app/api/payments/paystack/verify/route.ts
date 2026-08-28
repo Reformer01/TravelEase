@@ -29,8 +29,12 @@ export async function POST(request: NextRequest) {
       .eq('id', reference)
       .single();
 
-    if (payErr || !payment) {
-      return NextResponse.json({ error: payErr?.message || 'Payment not found' }, { status: 404 });
+    if (payErr) {
+      console.error('Failed to load payment for verify', payErr);
+      return NextResponse.json({ error: 'Unable to verify payment' }, { status: 500 });
+    }
+    if (!payment) {
+      return NextResponse.json({ error: 'Payment not found' }, { status: 404 });
     }
 
     if (payment.user_id !== user.id) {
@@ -79,7 +83,8 @@ export async function POST(request: NextRequest) {
       .eq('user_id', user.id);
 
     if (updErr) {
-      return NextResponse.json({ error: updErr.message }, { status: 500 });
+      console.error('Failed to update payment status', updErr);
+      return NextResponse.json({ error: 'Unable to verify payment' }, { status: 500 });
     }
 
     return NextResponse.json({

@@ -26,9 +26,12 @@ export async function GET(request: NextRequest) {
       ? await bookingQuery.eq('booking_reference', reference).maybeSingle()
       : await bookingQuery.eq('id', reference).maybeSingle();
 
-    if (bErr || !booking) {
-      // Most common case: no booking found for this user + reference
-      return NextResponse.json({ error: bErr?.message || 'Booking not found' }, { status: 404 });
+    if (bErr) {
+      console.error('Failed to load booking', bErr);
+      return NextResponse.json({ error: 'Unable to load booking' }, { status: 500 });
+    }
+    if (!booking) {
+      return NextResponse.json({ error: 'Booking not found' }, { status: 404 });
     }
 
     const { data: items, error: iErr } = await supabase
@@ -39,7 +42,8 @@ export async function GET(request: NextRequest) {
       .order('id', { ascending: true });
 
     if (iErr) {
-      return NextResponse.json({ error: iErr.message }, { status: 500 });
+      console.error('Failed to load booking items', iErr);
+      return NextResponse.json({ error: 'Unable to load booking' }, { status: 500 });
     }
 
     return NextResponse.json({ ok: true, booking, items: items || [] });

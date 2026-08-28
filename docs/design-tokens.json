@@ -1,0 +1,51 @@
+{
+  "brand": "TravelEase",
+  "note": "High-fi handoff SSOT. Tailwind uses HSL vars; hex values are canonical for contrast checks.",
+  "color": {
+    "primary": {
+      "DEFAULT": { "value": "#ec5b13", "hsl": "19 85% 50%", "var": "--primary", "contrast_on_white": "3.2:1 FAIL small text", "fix": "Use #d4550f for text on white to reach 4.5:1, keep #ec5b13 for large/btn bg" },
+      "50": { "value": "#fff3ec" },
+      "100": { "value": "#ffe2cc" },
+      "500": { "value": "#ec5b13" },
+      "600": { "value": "#d4550f" },
+      "700": { "value": "#b8480d" }
+    },
+    "background": {
+      "light": { "value": "#f8f6f6" },
+      "dark": { "value": "#221610" },
+      "card": { "value": "hsl(var(--card))" }
+    },
+    "semantic": {
+      "success": { "value": "#16a34a" },
+      "warning": { "value": "#f59e0b" },
+      "error": { "value": "#dc2626" },
+      "info": { "value": "#0ea5e9" }
+    },
+    "text": {
+      "primary": { "value": "#1c1917", "var": "hsl(var(--foreground))" },
+      "secondary": { "value": "#78716c" },
+      "onPrimary": { "value": "#ffffff" }
+    },
+    "border": { "value": "hsl(var(--border))" },
+    "focus": { "value": "hsl(var(--ring))" }
+  },
+  "typography": {
+    "family": { "display": "Public Sans", "body": "Public Sans", "code": "monospace" },
+    "scale": {
+      "xs": { "value": "0.75rem", "line": "1rem" },
+      "sm": { "value": "0.875rem", "line": "1.25rem" },
+      "base": { "value": "1rem", "line": "1.5rem" },
+      "lg": { "value": "1.125rem", "line": "1.75rem" },
+      "xl": { "value": "1.25rem", "line": "1.75rem" },
+      "2xl": { "value": "1.5rem", "line": "2rem" },
+      "3xl": { "value": "1.875rem", "line": "2.25rem" },
+      "4xl": { "value": "2.25rem", "line": "2.5rem" },
+      "6xl": { "value": "3.75rem", "line": "1" }
+    },
+    "weight": { "regular": 400, "medium": 500, "semibold": 600, "bold": 700, "black": 900 }
+  },
+  "spacing": { "1": "4px", "2": "8px", "3": "12px", "4": "16px", "6": "24px", "8": "32px", "12": "48px" },
+  "radius": { "sm": "6px", "md": "8px", "lg": "12px", "xl": "16px", "2xl": "24px", "3xl": "32px", "full": "9999px", "semantic": "--radius 0.5rem base" },
+  "shadow": { "sm": "0 1px 2px rgba(0,0,0,0.05)", "md": "0 4px 6px rgba(0,0,0,0.07)", "xl": "0 20px 25px rgba(0,0,0,0.1)" },
+  "breakpoints": { "sm": "640px", "md": "768px", "lg": "1024px" }
+}

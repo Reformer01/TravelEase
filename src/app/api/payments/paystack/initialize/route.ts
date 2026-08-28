@@ -1,48 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireSupabaseUser } from '@/lib/supabase-auth';
 import { createSupabaseRouteClient } from '@/lib/supabase-route';
+import { DEFAULT_CURRENCY } from '@/lib/pricing';
 
 function getPaystackSecretKey(): string {
   const key = process.env.PAYSTACK_SECRET_KEY;
   if (!key) throw new Error('Missing PAYSTACK_SECRET_KEY');
   return key;
-}
-
-async function getSupportedCurrency(): Promise<string> {
-  // Default to NGN as it's the most commonly supported currency for Paystack test accounts
-  const defaultCurrency = 'NGN';
-  
-  try {
-    // Test if USD is supported by making a minimal test request
-    const testResp = await fetch('https://api.paystack.co/transaction/initialize', {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${getPaystackSecretKey()}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        email: 'test@example.com',
-        amount: 100, // 1 NGN in lowest unit
-        currency: 'USD',
-        reference: `currency-test-${Date.now()}`,
-      }),
-    });
-
-    if (testResp.ok) {
-      return 'USD';
-    }
-    
-    const testJson = await testResp.json().catch(() => null);
-    if (testJson?.message?.includes('Currency not supported')) {
-      console.warn('USD not supported by merchant, falling back to NGN');
-      return defaultCurrency;
-    }
-    
-    return defaultCurrency;
-  } catch (error) {
-    console.warn('Failed to detect supported currency, defaulting to NGN:', error);
-    return defaultCurrency;
-  }
 }
 
 export async function POST(request: NextRequest) {
@@ -54,7 +18,7 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const amount = Number(body?.amount);
-    const requestedCurrency = typeof body?.currency === 'string' ? body.currency : (process.env.PAYMENT_CURRENCY || 'NGN');
+    const requestedCurrency = typeof body?.currency === 'string' ? body.currency : (process.env.PAYMENT_CURRENCY || DEFAULT_CURRENCY);
     const items = Array.isArray(body?.items) ? body.items : [];
     const availabilityToken = typeof body?.availabilityToken === 'string' ? body.availabilityToken : null;
     const guestCount = typeof body?.guestCount === 'number' ? body.guestCount : 2;
@@ -66,15 +30,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Missing availabilityToken' }, { status: 400 });
     }
 
-    // Detect supported currency and fallback if necessary
-    let currency = requestedCurrency;
-    if (currency === 'USD') {
-      const supportedCurrency = await getSupportedCurrency();
-      if (supportedCurrency !== 'USD') {
-        currency = supportedCurrency;
-        console.log(`Currency fallback: ${requestedCurrency} → ${currency}`);
-      }
-    }
+    // Use the requested currency directly. Paystack will reject unsupported
+    // currencies at initialize time, which is surfaced to the user.
+    const currency = requestedCurrency;
 
     const supabase = createSupabaseRouteClient(accessToken);
 

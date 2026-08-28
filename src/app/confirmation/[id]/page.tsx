@@ -71,7 +71,6 @@ export default function ConfirmationPage() {
 
   const firstItem = purchase?.items?.[0];
   const booking = purchase?.booking;
-  const userEmail = user?.email || 'user@travelease.com';
 
   if (loading) {
     return (

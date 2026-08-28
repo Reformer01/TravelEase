@@ -20,10 +20,15 @@ export async function GET(request: NextRequest) {
       .from('bookings')
       .select('*')
       .eq('booking_reference', reference)
-      .single();
+      .eq('user_id', user.id)
+      .maybeSingle();
 
     if (bookingErr) {
-      return NextResponse.json({ error: bookingErr.message }, { status: 500 });
+      console.error('Failed to fetch booking by reference', bookingErr);
+      return NextResponse.json({ error: 'Unable to fetch booking' }, { status: 500 });
+    }
+    if (!booking) {
+      return NextResponse.json({ error: 'Booking not found' }, { status: 404 });
     }
 
     const { data: items, error: itemsErr } = await supabase
@@ -34,7 +39,8 @@ export async function GET(request: NextRequest) {
       .order('id', { ascending: true });
 
     if (itemsErr) {
-      return NextResponse.json({ error: itemsErr.message }, { status: 500 });
+      console.error('Failed to fetch booking items', itemsErr);
+      return NextResponse.json({ error: 'Unable to fetch booking' }, { status: 500 });
     }
 
     return NextResponse.json({ ok: true, booking, items });

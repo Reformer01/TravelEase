@@ -1,19 +1,34 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 
 export default function BookingCancelledPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-background-light dark:bg-background-dark">
+        <span className="material-symbols-outlined text-primary text-5xl animate-spin">refresh</span>
+      </div>
+    }>
+      <BookingCancelledContent />
+    </Suspense>
+  );
+}
+
+function BookingCancelledContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [bookingReference, setBookingReference] = useState<string>("");
   const [refundAmount, setRefundAmount] = useState<number>(0);
 
   useEffect(() => {
-    // In a real app, these would come from query params or API
-    setBookingReference("STN-99281-XC");
-    setRefundAmount(840.00);
-  }, []);
+    // Read from query params when available; fall back to empty state.
+    const ref = searchParams.get("reference");
+    const amount = Number(searchParams.get("refundAmount"));
+    setBookingReference(ref || "");
+    setRefundAmount(Number.isFinite(amount) && amount > 0 ? amount : 0);
+  }, [searchParams]);
 
   return (
     <div className="relative flex h-auto min-h-screen w-full flex-col overflow-x-hidden">

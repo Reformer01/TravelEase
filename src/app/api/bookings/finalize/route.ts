@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireSupabaseUser } from '@/lib/supabase-auth';
 import { createSupabaseRouteClient } from '@/lib/supabase-route';
+import { computePriceBreakdown, DEFAULT_CURRENCY } from '@/lib/pricing';
 
 function generateReference(prefix: string) {
   return `${prefix}-${Math.random().toString(36).slice(2, 9).toUpperCase()}`;
@@ -16,7 +17,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const paymentId = typeof body?.paymentId === 'string' ? body.paymentId : null;
     // Default to NGN if not specified - Paystack supports NGN for Nigerian merchants
-    const currency = typeof body?.currency === 'string' ? body.currency : (process.env.PAYMENT_CURRENCY || 'NGN');
+    const currency = typeof body?.currency === 'string' ? body.currency : (process.env.PAYMENT_CURRENCY || DEFAULT_CURRENCY);
 
     if (!paymentId) return NextResponse.json({ error: 'Missing paymentId' }, { status: 400 });
 
@@ -61,9 +62,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Must match checkout UI calculation to prevent mismatches.
-    const taxesAndFees = Math.floor(subtotal * 0.1);
-    const serviceFee = Math.floor(subtotal * 0.02);
-    const grandTotal = subtotal + taxesAndFees + serviceFee;
+    const { taxesAndFees, serviceFee, grandTotal } = computePriceBreakdown(subtotal);
 
     // Ensure payment amount matches what we are booking.
     if (Number(payment.amount) !== grandTotal) {

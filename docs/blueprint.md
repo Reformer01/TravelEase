@@ -1,4 +1,4 @@
-# **App Name**: VoyageFlow
+# **App Name**: TravelEase
 
 ## Core Features:
 

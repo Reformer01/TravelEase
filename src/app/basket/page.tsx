@@ -7,6 +7,7 @@ import { useBasket } from '@/context/basket-context';
 import { useAuth, useUser } from '@/supabase';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { computePriceBreakdown } from '@/lib/pricing';
 
 export default function BasketPage() {
   const { items, removeFromBasket, totalPrice, isLoading } = useBasket();
@@ -22,8 +23,7 @@ export default function BasketPage() {
   const activities = items.filter(item => item.type === 'activity');
   const cars = items.filter(item => item.type === 'car');
 
-  const taxesAndFees = Math.floor(totalPrice * 0.08);
-  const grandTotal = totalPrice + taxesAndFees;
+  const { taxesAndFees, grandTotal } = computePriceBreakdown(totalPrice);
 
   const handleVerify = async () => {
     if (!user) {

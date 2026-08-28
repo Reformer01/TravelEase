@@ -10,14 +10,15 @@ export async function GET(request: NextRequest) {
 
   try {
     const supabase = createSupabaseRouteClient(accessToken);
-    const { data, error: selErr } = await supabase.from('profiles').select('*').eq('user_id', user.id).single();
+    const { data, error: selErr } = await supabase.from('profiles').select('*').eq('user_id', user.id).maybeSingle();
 
     if (selErr) {
-      // If row doesn't exist yet, return empty profile.
-      return NextResponse.json({ ok: true, profile: null });
+      console.error('Failed to load profile', selErr);
+      return NextResponse.json({ error: 'Unable to load profile' }, { status: 500 });
     }
 
-    return NextResponse.json({ ok: true, profile: data });
+    // If row doesn't exist yet, return empty profile.
+    return NextResponse.json({ ok: true, profile: data || null });
   } catch (e) {
     console.error('GET /api/profile/me error', e);
     return NextResponse.json({ error: 'Unable to load profile' }, { status: 500 });
@@ -45,6 +46,8 @@ export async function PUT(request: NextRequest) {
     const last_name = lastNameRaw?.trim() || derivedLastName;
     const phone_number = typeof body?.phoneNumber === 'string' ? body.phoneNumber : null;
     const email = typeof body?.email === 'string' ? body.email : user.email;
+    const date_of_birth = typeof body?.dateOfBirth === 'string' ? body.dateOfBirth : null;
+    const home_address = typeof body?.homeAddress === 'string' ? body.homeAddress : null;
 
     const supabase = createSupabaseRouteClient(accessToken);
 
@@ -54,6 +57,8 @@ export async function PUT(request: NextRequest) {
       last_name,
       phone_number,
       email,
+      date_of_birth: date_of_birth || null,
+      home_address: home_address || null,
       updated_at: new Date().toISOString(),
     };
 
@@ -64,7 +69,8 @@ export async function PUT(request: NextRequest) {
       .single();
 
     if (upErr) {
-      return NextResponse.json({ error: upErr.message }, { status: 500 });
+      console.error('Failed to save profile', upErr);
+      return NextResponse.json({ error: 'Unable to save profile' }, { status: 500 });
     }
 
     return NextResponse.json({ ok: true, profile: data });
