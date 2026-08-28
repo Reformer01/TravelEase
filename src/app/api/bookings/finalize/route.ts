@@ -62,7 +62,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Must match checkout UI calculation to prevent mismatches.
-    const { taxesAndFees, serviceFee, grandTotal } = computePriceBreakdown(subtotal);
+    const addOns = Number(payment?.metadata?.addOns || 0) || 0;
+    const { taxesAndFees, serviceFee, grandTotal } = computePriceBreakdown(subtotal, addOns);
 
     // Ensure payment amount matches what we are booking.
     if (Number(payment.amount) !== grandTotal) {

@@ -19,6 +19,10 @@ export default function CheckoutPage() {
   const auth = useAuth();
   const [loading, setLoading] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<'card' | 'bank' | 'ussd'>('card');
+  const [step, setStep] = useState<1 | 2>(1);
+  const [bookingClass, setBookingClass] = useState<'economy' | 'first'>('economy');
+  const [insurance, setInsurance] = useState(false);
+  const addOns = (bookingClass === 'first' ? 5000 : 0) + (insurance ? 8000 : 0);
 
   const selectedCar = items.find((it) => it.type === 'car') || null;
   const suggestedLocation = items.find((it) => typeof it.location === 'string' && it.location.trim())?.location;
@@ -28,7 +32,7 @@ export default function CheckoutPage() {
 
   const loginFor = (path: string) => `/auth/login?next=${encodeURIComponent(path)}`;
 
-  const { taxesAndFees, serviceFee, grandTotal } = computePriceBreakdown(totalPrice);
+  const { taxesAndFees, serviceFee, grandTotal } = computePriceBreakdown(totalPrice, addOns);
 
   const getAccessToken = async (): Promise<string | null> => {
     const { data, error } = await auth.auth.getSession();
@@ -93,6 +97,7 @@ export default function CheckoutPage() {
           availabilityToken,
           paymentMethod,
           guestCount,
+          addOns,
         }),
       });
 
@@ -170,42 +175,45 @@ export default function CheckoutPage() {
       </header>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <nav className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-sm text-slate-500 dark:text-slate-400 mb-8">
-          <div className="flex items-center gap-2 min-w-0 overflow-x-auto whitespace-nowrap">
-            <Link className="hover:text-primary" href="/search">Search Results</Link>
-            <span className="material-symbols-outlined text-xs">chevron_right</span>
-            <span className="hover:text-primary">Passenger Details</span>
-            <span className="material-symbols-outlined text-xs">chevron_right</span>
-            <span className="text-slate-900 dark:text-slate-100 font-semibold">Secure Payment</span>
-          </div>
+        <div className="flex flex-col gap-1">
+          <h1 className="text-3xl font-black tracking-tight text-slate-900 dark:text-white">Checkout</h1>
+          <p className="text-slate-500 dark:text-slate-400">Complete your booking — 2 quick steps.</p>
+        </div>
+        {/* Stepper N1 progress */}
+        <div className="flex items-center gap-3 mb-2">
+          <div className={`flex items-center gap-2 ${step >= 1 ? 'text-primary' : 'text-slate-400'}`}><span className={`size-8 rounded-full flex items-center justify-center text-sm font-bold border ${step >= 1 ? 'bg-primary text-white border-primary' : 'border-slate-300'}`}>1</span><span className="text-sm font-bold">Travellers</span></div>
+          <div className="flex-1 h-px bg-slate-200 dark:bg-slate-700" />
+          <div className={`flex items-center gap-2 ${step >= 2 ? 'text-primary' : 'text-slate-400'}`}><span className={`size-8 rounded-full flex items-center justify-center text-sm font-bold border ${step >= 2 ? 'bg-primary text-white border-primary' : 'border-slate-300'}`}>2</span><span className="text-sm font-bold">Payment</span></div>
+        </div>
+        <nav className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 mb-6">
+          <Link className="hover:text-primary" href="/search">Search</Link><span className="material-symbols-outlined text-xs" aria-hidden="true">chevron_right</span><Link className="hover:text-primary" href="/basket">Basket</Link><span className="material-symbols-outlined text-xs" aria-hidden="true">chevron_right</span><span className="text-slate-900 dark:text-slate-100 font-semibold">Checkout</span>
         </nav>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 md:gap-8">
           <div className="lg:col-span-8 space-y-8">
-            <div className="flex flex-col gap-1">
-              <h1 className="text-3xl font-black tracking-tight text-slate-900 dark:text-white">Checkout</h1>
-              <p className="text-slate-500 dark:text-slate-400">Complete your booking by providing the required details below.</p>
-            </div>
 
             <form onSubmit={handleSubmit} className="space-y-8">
+              {step === 1 && (
+              <>
               <section className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm">
                 <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex items-center gap-3">
                   <span className="material-symbols-outlined text-primary">groups</span>
-                  <h2 className="text-lg font-bold">Passenger Details</h2>
+                  <h2 className="text-lg font-bold">Travellers</h2>
+                  <span className="ml-auto text-xs text-slate-500">Step 1 of 2</span>
                 </div>
                 <div className="p-6 space-y-4">
                   <div className="flex flex-col gap-1.5">
-                    <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Full Name</label>
-                    <input required className="rounded-lg border-slate-300 dark:border-slate-700 bg-transparent focus:border-primary focus:ring-primary h-10 px-3 text-sm" placeholder="John Doe" type="text" defaultValue={(user?.user_metadata?.full_name as string | undefined) || ''} />
+                    <label htmlFor="fullName" className="text-sm font-medium text-slate-700 dark:text-slate-300">Full Name</label>
+                    <input id="fullName" required className="rounded-lg border border-slate-300 dark:border-slate-700 bg-transparent focus:border-primary focus:ring-primary h-10 px-3 text-sm" placeholder="John Doe" type="text" defaultValue={(user?.user_metadata?.full_name as string | undefined) || ''} />
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="flex flex-col gap-1.5">
-                      <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Email Address</label>
-                      <input required className="rounded-lg border-slate-300 dark:border-slate-700 bg-transparent focus:border-primary focus:ring-primary h-10 px-3 text-sm" placeholder="user@travelease.com" type="email" defaultValue={user?.email || ''} />
+                      <label htmlFor="email" className="text-sm font-medium text-slate-700 dark:text-slate-300">Email Address</label>
+                      <input id="email" required className="rounded-lg border border-slate-300 dark:border-slate-700 bg-transparent focus:border-primary focus:ring-primary h-10 px-3 text-sm" placeholder="user@travelease.com" type="email" defaultValue={user?.email || ''} />
                     </div>
                     <div className="flex flex-col gap-1.5">
-                      <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Phone Number</label>
-                      <input required className="rounded-lg border-slate-300 dark:border-slate-700 bg-transparent focus:border-primary focus:ring-primary h-10 px-3 text-sm" placeholder="+1 000 000 0000" type="tel" />
+                      <label htmlFor="phone" className="text-sm font-medium text-slate-700 dark:text-slate-300">Phone Number</label>
+                      <input id="phone" required pattern="^\\+?\\d[\\d\\s\\-]{7,}$" title="Enter valid phone e.g. +234 800 000 0000" className="rounded-lg border border-slate-300 dark:border-slate-700 bg-transparent focus:border-primary focus:ring-primary h-10 px-3 text-sm" placeholder="+234 800 000 0000" type="tel" />
                     </div>
                   </div>
                 </div>
@@ -220,7 +228,7 @@ export default function CheckoutPage() {
                   <div className="grid grid-cols-3 gap-4">
                     {[1, 2, 3].map((count) => (
                       <label key={count} className="flex items-center gap-2 p-3 border border-slate-200 dark:border-slate-700 rounded-lg cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
-                        <input type="radio" name="guestCount" value={count} defaultChecked={count === 1} className="cursor-pointer" />
+                        <input type="radio" name="guestCount" value={count} defaultChecked={count === 2} className="cursor-pointer" />
                         <span className="font-medium">{count} {count === 1 ? 'Guest' : 'Guests'}</span>
                       </label>
                     ))}
@@ -236,17 +244,22 @@ export default function CheckoutPage() {
                 <div className="p-6 space-y-4">
                   <div className="flex flex-col sm:flex-row gap-4">
                     <label className="flex items-center gap-3 p-4 border border-slate-200 dark:border-slate-700 rounded-lg cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors flex-1">
-                      <input type="radio" name="bookingClass" value="economy" defaultChecked className="cursor-pointer" />
+                      <input type="radio" name="bookingClass" value="economy" checked={bookingClass==='economy'} onChange={() => setBookingClass('economy')} className="cursor-pointer" />
                       <span className="font-medium">Economy</span>
                     </label>
                     <label className="flex items-center gap-3 p-4 border border-slate-200 dark:border-slate-700 rounded-lg cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors flex-1">
-                      <input type="radio" name="bookingClass" value="first" className="cursor-pointer" />
+                      <input type="radio" name="bookingClass" value="first" checked={bookingClass==='first'} onChange={() => setBookingClass('first')} className="cursor-pointer" />
                       <span className="font-medium">First Class <span className="text-xs text-primary">(+₦5,000)</span></span>
                     </label>
                   </div>
                 </div>
               </section>
+              <button type="button" onClick={() => setStep(2)} className="w-full bg-primary text-white font-bold py-3 rounded-xl">Continue to Payment — ₦{grandTotal.toLocaleString()}</button>
+              </>
+              )}
 
+              {step === 2 && (
+              <>
               <section className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm">
                 <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex items-center gap-3">
                   <span className="material-symbols-outlined text-primary">directions_car</span>
@@ -298,7 +311,7 @@ export default function CheckoutPage() {
                 </div>
                 <div className="p-6 space-y-4">
                   <label className="flex items-center gap-3 p-4 border border-slate-200 dark:border-slate-700 rounded-lg cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
-                    <input type="checkbox" name="travelInsurance" value="true" className="cursor-pointer" />
+                    <input type="checkbox" name="travelInsurance" checked={insurance} onChange={(e) => setInsurance(e.target.checked)} className="cursor-pointer" />
                     <span className="font-medium">Add Travel Insurance <span className="text-xs text-primary">(+₦8,000)</span></span>
                   </label>
                   <p className="text-xs text-slate-500 dark:text-slate-400">Comprehensive coverage for trip cancellation, medical emergencies, and lost baggage.</p>
@@ -346,12 +359,13 @@ export default function CheckoutPage() {
                           By proceeding, you agree to our <Link href="/support/cancellation" className="text-primary hover:underline">cancellation policy</Link> and <Link href="/support/terms" className="text-primary hover:underline">terms of service</Link>.
                         </p>
                       </div>
-                      <div className="pt-2">
+                      <div className="pt-2 flex flex-col gap-3">
+                        <button type="button" onClick={() => setStep(1)} className="w-full border border-slate-200 dark:border-slate-700 py-3 rounded-xl font-bold">Back to Travellers</button>
                         <button type="submit" disabled={loading} className="w-full bg-primary hover:bg-primary/90 text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg shadow-primary/20">
-                          {loading ? 'Redirecting...' : `Continue to Paystack (₦${grandTotal.toLocaleString()})`}
+                          {loading ? 'Redirecting...' : `Pay ₦${grandTotal.toLocaleString()} with Paystack`}
                           {!loading && <span className="material-symbols-outlined">open_in_new</span>}
                         </button>
-                        <p className="text-center text-xs text-slate-400 mt-4 flex items-center justify-center gap-1">
+                        <p className="text-center text-xs text-slate-400 flex items-center justify-center gap-1">
                           <span className="material-symbols-outlined text-[14px]">verified_user</span>
                           Secure payment powered by Paystack.
                         </p>
@@ -360,6 +374,8 @@ export default function CheckoutPage() {
                   </div>
                 </div>
               </section>
+              </>
+              )}
             </form>
           </div>
 

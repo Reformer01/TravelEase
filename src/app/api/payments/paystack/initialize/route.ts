@@ -22,6 +22,7 @@ export async function POST(request: NextRequest) {
     const items = Array.isArray(body?.items) ? body.items : [];
     const availabilityToken = typeof body?.availabilityToken === 'string' ? body.availabilityToken : null;
     const guestCount = typeof body?.guestCount === 'number' ? body.guestCount : 2;
+    const addOns = Number(body?.addOns || 0) || 0;
 
     if (!Number.isFinite(amount) || amount <= 0) {
       return NextResponse.json({ error: 'Invalid amount' }, { status: 400 });
@@ -45,7 +46,7 @@ export async function POST(request: NextRequest) {
         provider: 'paystack',
         provider_ref: null,
         status: 'pending',
-        metadata: { guestCount },
+        metadata: { guestCount, addOns },
       })
       .select('*')
       .single();
@@ -80,6 +81,7 @@ export async function POST(request: NextRequest) {
           payment_id: payment.id,
           availability_token: availabilityToken,
           guestCount,
+          addOns,
           // Non-authoritative snapshot for UX/debug only.
           items,
         },

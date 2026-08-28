@@ -18,9 +18,10 @@ export interface PriceBreakdown {
  * Compute the price breakdown for a given subtotal.
  * Uses Math.floor to match the server-side calculation exactly.
  */
-export function computePriceBreakdown(subtotal: number): PriceBreakdown {
-  const taxesAndFees = Math.floor(subtotal * TAX_RATE);
-  const serviceFee = Math.floor(subtotal * SERVICE_FEE_RATE);
-  const grandTotal = subtotal + taxesAndFees + serviceFee;
+export function computePriceBreakdown(subtotal: number, addOns = 0): PriceBreakdown {
+  const base = subtotal + addOns;
+  const taxesAndFees = Math.floor(base * TAX_RATE);
+  const serviceFee = Math.floor(base * SERVICE_FEE_RATE);
+  const grandTotal = base + taxesAndFees + serviceFee;
   return { subtotal, taxesAndFees, serviceFee, grandTotal };
 }
