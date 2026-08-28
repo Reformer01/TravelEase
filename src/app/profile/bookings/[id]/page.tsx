@@ -584,9 +584,20 @@ export default function BookingDetailsPage() {
                         <span className="material-symbols-outlined text-sm">edit</span>
                         Modify Booking
                       </button>
-                      <button className="w-full py-3 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold rounded-xl hover:bg-slate-300 dark:hover:bg-slate-700 transition-colors flex items-center justify-center gap-2">
+                      <button onClick={() => window.print()} className="w-full py-3 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold rounded-xl hover:bg-slate-300 dark:hover:bg-slate-700 transition-colors flex items-center justify-center gap-2">
                         <span className="material-symbols-outlined text-sm">receipt</span>
                         Download Invoice
+                      </button>
+                      <button onClick={async () => {
+                        if (!items) return;
+                        for (const it of items) {
+                          try { await fetch('/api/basket', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${(await auth.auth.getSession()).data.session?.access_token}` }, body: JSON.stringify({ item: it }) }); } catch {}
+                        }
+                        toast({ title: 'Rebooked', description: `${items.length} item${items.length>1?'s':''} added to basket.` });
+                        router.push('/basket');
+                      }} className="w-full py-3 bg-primary/10 text-primary font-bold rounded-xl hover:bg-primary/20 transition-colors flex items-center justify-center gap-2">
+                        <span className="material-symbols-outlined text-sm">replay</span>
+                        Rebook
                       </button>
                       {!disableActions && (
                         <button 

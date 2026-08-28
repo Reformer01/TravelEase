@@ -322,6 +322,10 @@ export default function BasketPage() {
                 </section>
               )}
 
+              <div className="flex gap-4 items-center p-4 bg-amber-50 dark:bg-amber-900/20 rounded-xl border border-amber-200 dark:border-amber-800">
+                <span className="material-symbols-outlined text-amber-600">timer</span>
+                <p className="text-sm text-slate-700 dark:text-slate-300">Prices held 20 min after verification. Complete checkout before timer expires to keep this price.</p>
+              </div>
               <div className="flex gap-4 items-center p-4 bg-primary/5 rounded-xl border border-primary/20">
                 <span className="material-symbols-outlined text-primary">info</span>
                 <p className="text-sm text-slate-700 dark:text-slate-300">Prices and availability are subject to change until booking is completed. Use 'Check Out' to proceed to payment.</p>
