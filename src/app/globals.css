@@ -54,7 +54,7 @@
 
 @layer base {
   * {
-    @apply border-border;
+    border-color: hsl(var(--border));
   }
   body {
     @apply bg-background-light dark:bg-background-dark text-foreground font-display antialiased;
