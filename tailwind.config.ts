@@ -31,6 +31,7 @@ export default {
         },
         primary: {
           DEFAULT: '#ec5b13',
+          600: 'hsl(var(--primary-600))',
           foreground: '#ffffff',
         },
         secondary: {

@@ -10,6 +10,7 @@ import { useRouter } from 'next/navigation';
 import { computePriceBreakdown } from '@/lib/pricing';
 import { useToast } from '@/hooks/use-toast';
 import { Navbar } from '@/components/layout/navbar';
+import { EmptyState } from '@/components/ui/empty-state';
 
 export default function BasketPage() {
   const { items, removeFromBasket, totalPrice, isLoading } = useBasket();
@@ -128,14 +129,7 @@ export default function BasketPage() {
             </div>
           </div>
         ) : items.length === 0 ? (
-          <div className="text-center py-20 bg-white dark:bg-slate-900 rounded-3xl border border-dashed border-slate-200 dark:border-slate-800">
-            <span className="material-symbols-outlined text-6xl text-slate-300 mb-4">shopping_basket</span>
-            <h3 className="text-xl font-bold">Your basket is empty</h3>
-            <p className="text-slate-500 mb-8">Looks like you haven't added any trips yet.</p>
-            <Link href="/search">
-              <button className="bg-primary hover:bg-primary/90 px-8 py-3 rounded-xl text-white font-bold transition-all">Start Exploring</button>
-            </Link>
-          </div>
+          <EmptyState icon="shopping_basket" title="Your basket is empty" description="Looks like you haven't added any trips yet." actionHref="/search" actionLabel="Start Exploring" />
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-8">
             <div className="lg:col-span-2 space-y-6">

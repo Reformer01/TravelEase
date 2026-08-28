@@ -13,6 +13,7 @@ import { CancellationModal } from '@/components/cancellation-modal';
 import { BookingModificationModal } from '@/components/booking-modification-modal';
 import { DeleteConfirmationModal } from '@/components/delete-confirmation-modal';
 import { computePriceBreakdown } from '@/lib/pricing';
+import { EmptyState } from '@/components/ui/empty-state';
 
 export default function BookingDetailsPage() {
   const { id } = useParams();
@@ -259,10 +260,9 @@ export default function BookingDetailsPage() {
   if (!user || !booking) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-background-light dark:bg-background-dark p-4">
-        <h2 className="text-2xl font-bold mb-4">Booking not found</h2>
-        <Link href="/profile/bookings">
-          <Button>Back to My Bookings</Button>
-        </Link>
+        <div className="w-full max-w-md">
+          <EmptyState icon="search_off" title="Booking not found" description="We couldn't find this booking." actionHref="/profile/bookings" actionLabel="Back to My Bookings" />
+        </div>
       </div>
     );
   }

@@ -203,7 +203,7 @@ export default function AuthPageContent() {
               <div className="space-y-1.5">
                 <div className="flex justify-between">
                   <Label htmlFor="password" className="block text-sm font-medium text-slate-700 dark:text-slate-300">Password</Label>
-                  {view === 'login' && <Link className="text-sm font-semibold text-primary hover:underline" href="#">Forgot password?</Link>}
+                  {view === 'login' && <Link className="text-sm font-semibold text-primary hover:underline" href="/auth/forgot">Forgot password?</Link>}
                 </div>
                 <div className="relative">
                   <Input 

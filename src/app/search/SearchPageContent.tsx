@@ -10,6 +10,7 @@ import { useUser } from '@/supabase';
 import { Slider } from '@/components/ui/slider';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Navbar } from '@/components/layout/navbar';
+import { EmptyState } from '@/components/ui/empty-state';
 
 const getResults = (
   type: string | null
@@ -178,10 +179,7 @@ export default function SearchPageContent() {
 
           <div className="grid grid-cols-1 gap-4 md:gap-6">
             {filteredResults.length === 0 ? (
-              <div className="text-center py-20 bg-white dark:bg-slate-900 rounded-3xl border border-dashed border-slate-200">
-                <p className="text-slate-500">No matches found. Try adjusting your filters.</p>
-                <button onClick={() => { setPriceRange([1500000]); setSelectedRatings([5,4,3]); }} className="mt-4 text-primary font-bold text-sm hover:underline">Reset filters</button>
-              </div>
+              <EmptyState icon="search_off" title="No matches" description="Try adjusting your filters." actionLabel="Reset filters" onAction={() => { setPriceRange([1500000]); setSelectedRatings([5,4,3]); }} />
             ) : (
               filteredResults.map((service) => (
                   <div
