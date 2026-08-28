@@ -170,7 +170,7 @@ export default function SearchPageContent() {
       </header>
 
       <main className="mx-auto flex w-full max-w-7xl flex-1 gap-4 md:gap-8 px-4 sm:px-6 lg:px-20 py-8">
-        <aside className="hidden w-72 shrink-0 flex-col gap-4 md:gap-8 lg:flex">
+          <aside className="hidden w-72 shrink-0 flex-col gap-4 md:gap-8 lg:flex" aria-label="Filters">
           <div className="flex flex-col gap-6 rounded-xl border border-primary/10 bg-white dark:bg-primary/5 p-6 shadow-sm">
             <div>
               <h3 className="text-lg font-bold">Filters</h3>
@@ -201,14 +201,15 @@ export default function SearchPageContent() {
         </aside>
 
         <section className="flex flex-1 flex-col gap-4 md:gap-6">
+          <h1 className="sr-only">{type.charAt(0).toUpperCase() + type.slice(1)}s in {locationParam}</h1>
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-2 text-sm min-w-0 overflow-x-auto whitespace-nowrap">
               <Link href="/" className="text-slate-500 hover:text-primary transition-colors">
                 Home
               </Link>
-              <span className="material-symbols-outlined text-xs">chevron_right</span>
+              <span className="material-symbols-outlined text-xs" aria-hidden="true">chevron_right</span>
               <span className="text-slate-500">Search</span>
-              <span className="material-symbols-outlined text-xs">chevron_right</span>
+              <span className="material-symbols-outlined text-xs" aria-hidden="true">chevron_right</span>
               <span className="font-semibold">{type.charAt(0).toUpperCase() + type.slice(1)}s</span>
             </div>
             <div className="flex items-center gap-3 flex-wrap">

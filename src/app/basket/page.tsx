@@ -59,6 +59,7 @@ export default function BasketPage() {
         return;
       }
       const token = (json as any).token as string;
+      try { sessionStorage.setItem('availabilityToken', token); } catch {}
       router.push(`/checkout?availabilityToken=${encodeURIComponent(token)}`);
     } catch (e) {
       console.error('Availability verify error', e);

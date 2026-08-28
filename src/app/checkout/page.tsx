@@ -57,7 +57,10 @@ export default function CheckoutPage() {
       }
 
       const url = new URL(window.location.href);
-      const availabilityToken = url.searchParams.get('availabilityToken');
+      let availabilityToken = url.searchParams.get('availabilityToken');
+      if (!availabilityToken) {
+        try { availabilityToken = sessionStorage.getItem('availabilityToken'); } catch {}
+      }
       if (!availabilityToken) {
         toast({ variant: "destructive", title: "Error", description: "Missing availability verification. Please return to basket and verify." });
         setLoading(false);

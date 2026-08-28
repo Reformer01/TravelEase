@@ -1,6 +1,6 @@
 # TravelEase | Find Your Next Adventure
 
-This is a Next.js application built with Firebase and Genkit.
+This is a Next.js application built with Supabase, Paystack and Genkit.
 
 ## How to Initialize this Repository on GitHub
 
@@ -36,7 +36,8 @@ To get this project onto GitHub, follow these steps in your terminal:
 
 - **Framework**: Next.js 15 (App Router)
 - **Styling**: Tailwind CSS & Shadcn/UI
-- **Backend**: Firebase (Auth & Firestore)
+- **Backend**: Supabase (Auth & Postgres)
+- **Payments**: Paystack (NGN)
 - **AI**: Genkit with Google Gemini
 - **Icons**: Lucide React & Material Symbols
 

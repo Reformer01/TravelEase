@@ -43,14 +43,14 @@ export default function Home() {
             <Link className="text-sm font-semibold hover:text-primary transition-colors text-slate-600 dark:text-slate-300" href="/support">Support</Link>
           </nav>
           <div className="flex gap-3">
-            <Link href={user ? "/profile" : loginFor('/profile')}>
+            <Link href="/basket" aria-label="Basket" className="relative flex items-center justify-center rounded-xl h-10 w-10 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-primary/20 transition-colors">
+              <span className="material-symbols-outlined text-[20px]">shopping_basket</span>
+            </Link>
+            <Link href={user ? "/profile" : loginFor('/profile')} aria-label="Profile">
               <button className="flex items-center justify-center rounded-xl h-10 w-10 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-primary/20 transition-colors">
                 <span className="material-symbols-outlined text-[20px]">person</span>
               </button>
             </Link>
-            <button className="flex items-center justify-center rounded-xl h-10 w-10 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-primary/20 transition-colors">
-              <span className="material-symbols-outlined text-[20px]">menu</span>
-            </button>
           </div>
         </header>
         <main className="flex flex-col flex-1">
@@ -78,9 +78,11 @@ export default function Home() {
                 {/* Search Bar Container */}
                 <form onSubmit={handleSearch} className="mt-4 w-full bg-white dark:bg-slate-900 p-2 rounded-2xl shadow-2xl flex flex-col lg:flex-row gap-2">
                   <div className="flex-1 flex items-center px-4 py-3 border-b lg:border-b-0 lg:border-r border-slate-100 dark:border-slate-800">
-                    <span className="material-symbols-outlined text-primary mr-3">location_on</span>
+                    <label htmlFor="hero-where" className="sr-only">Where to?</label>
+                    <span className="material-symbols-outlined text-primary mr-3" aria-hidden="true">location_on</span>
                     <input 
-                      className="w-full bg-transparent border-none focus:ring-0 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 p-0 h-auto" 
+                      id="hero-where"
+                      className="w-full bg-transparent border-none focus:ring-2 focus:ring-primary/50 rounded-lg text-slate-900 dark:text-slate-100 placeholder:text-slate-400 p-0 h-auto" 
                       placeholder="Where to?" 
                       type="text"
                       value={destination}
@@ -88,15 +90,17 @@ export default function Home() {
                     />
                   </div>
                   <div className="flex-1 flex items-center px-4 py-3 border-b lg:border-b-0 lg:border-r border-slate-100 dark:border-slate-800">
-                    <span className="material-symbols-outlined text-primary mr-3">calendar_month</span>
-                    <input className="w-full bg-transparent border-none focus:ring-0 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 p-0 h-auto" placeholder="Dates" type="text" />
+                    <label htmlFor="hero-dates" className="sr-only">Dates</label>
+                    <span className="material-symbols-outlined text-primary mr-3" aria-hidden="true">calendar_month</span>
+                    <input id="hero-dates" className="w-full bg-transparent border-none focus:ring-2 focus:ring-primary/50 rounded-lg text-slate-900 dark:text-slate-100 placeholder:text-slate-400 p-0 h-auto" placeholder="Dates" type="date" />
                   </div>
                   <div className="flex-1 flex items-center px-4 py-3">
-                    <span className="material-symbols-outlined text-primary mr-3">group</span>
-                    <input className="w-full bg-transparent border-none focus:ring-0 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 p-0 h-auto" placeholder="Guests" type="number" min="1" />
+                    <label htmlFor="hero-guests" className="sr-only">Guests</label>
+                    <span className="material-symbols-outlined text-primary mr-3" aria-hidden="true">group</span>
+                    <input id="hero-guests" className="w-full bg-transparent border-none focus:ring-2 focus:ring-primary/50 rounded-lg text-slate-900 dark:text-slate-100 placeholder:text-slate-400 p-0 h-auto" placeholder="Guests" type="number" min="1" defaultValue={2} />
                   </div>
-                  <button type="submit" className="bg-primary text-white font-bold py-3 px-8 rounded-xl hover:brightness-110 transition-all flex items-center justify-center gap-2">
-                    <span className="material-symbols-outlined">search</span>
+                  <button type="submit" className="bg-primary text-white font-bold py-3 px-8 rounded-xl hover:brightness-110 transition-all flex items-center justify-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2">
+                    <span className="material-symbols-outlined" aria-hidden="true">search</span>
                     Search
                   </button>
                 </form>

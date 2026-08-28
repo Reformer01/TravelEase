@@ -27,7 +27,7 @@ export function Navbar() {
             <span className="material-symbols-outlined text-3xl font-bold">flight_takeoff</span>
           </div>
           <span className="font-black text-xl tracking-tighter text-slate-900 dark:text-slate-100 uppercase">
-            Voyage<span className="text-primary">Flow</span>
+            TravelEase
           </span>
         </Link>
 
